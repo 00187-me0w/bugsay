@@ -1,91 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugsay | Route Map</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
-        <ul class="nav-links">
-            <li><a href="/schedules">Schedules</a></li>
-            <li><a href="/map" style="color: var(--primary);">Port map</a></li>
-            <li><a href="/updates">Travel updates</a></li>
-            <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
-        </ul>
-        <div class="nav-actions">
-            <a href="#">Sign in</a>
-            <a href="/schedules" class="btn-primary" style="text-decoration: none;">Find a ferry</a>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Port Map{% endblock %}
 
-    <div class="section-header" style="margin-top: 4rem;">
-        <p class="section-label">Explore</p>
-        <h2 class="section-title">Visayas Sea Routes</h2>
-        <p class="section-subtitle">Interactive map of active ferry lines between Cebu and Leyte ports.</p>
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Explore</p>
+    <h2 class="section-title">Visayas sea routes</h2>
+    <p class="section-subtitle">Every port and route Bugsay lists, across Cebu, Leyte and Bohol. Tap a port to see where you can sail from it.</p>
+</div>
+
+<div class="map-wrap">
+    <div id="route-map" role="region" aria-label="Map of ports and ferry routes"></div>
+</div>
+
+<section class="port-list">
+    {% for p in port_list %}
+    <div class="port-item">
+        <i class="fa-solid fa-anchor" aria-hidden="true"></i>
+        <div>
+            <h4>{{ p.terminal }}</h4>
+            <p>{{ p.name }}, {{ p.island }} · {{ departures[p.key] }} departure{{ '' if departures[p.key] == 1 else 's' }} listed</p>
+        </div>
     </div>
+    {% endfor %}
+</section>
+{% endblock %}
 
-    <div style="max-width: 1100px; margin: 0 auto 5rem; padding: 0 5%;">
-        <div id="route-map" style="height: 500px; width: 100%; border-radius: 12px; border: 1px solid var(--border); z-index: 1;"></div>
-    </div>
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script type="application/json" id="map-data">{{ {'ports': port_list, 'lines': lines} | tojson }}</script>
+<script>
+(function () {
+    var data = JSON.parse(document.getElementById("map-data").textContent);
+    var byKey = {};
+    data.ports.forEach(function (p) { byKey[p.key] = p; });
 
-    <footer class="footer">
-        <div class="footer-grid">
-            <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
-                <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Plan your trip</h4>
-                <ul><li><a href="/schedules">Ferry schedules</a></li><li><a href="/map">Port map</a></li><li><a href="/updates">Travel updates</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Here to help</h4>
-                <ul><li><a href="/faq">Help & FAQ</a></li><li><a href="/privacy">Privacy policy</a></li></ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>© 2026 Bugsay. All rights reserved.</span>
-        </div>
-    </footer>
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+    }
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-   
-    var customIcon = L.icon({
-        iconUrl: "{{ url_for('static', filename='images/location.png') }}",
-        iconSize: [38, 38],        
-        iconAnchor: [19, 38],      
-        popupAnchor: [0, -34]      
-    });
-    var map = L.map('route-map').setView([10.55, 124.35], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    var map = L.map("route-map", { scrollWheelZoom: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var ports = [
-        { name: "Hilongos Port", coords: [10.3735, 124.7482] },      
-        { name: "Baybay City Port", coords: [10.6781, 124.7963] },   
-        { name: "Ormoc City Pier", coords: [11.0049, 124.6067] },   
-        { name: "Cebu City Pier 3", coords: [10.2917, 123.9062] },   
-        { name: "Ubay Port", coords: [10.0620, 124.4795] }           
-    ];
-
-    ports.forEach(port => {
-        L.marker(port.coords, { icon: customIcon }).addTo(map).bindPopup(`<b>${port.name}</b>`);
+    var icon = L.divIcon({
+        className: "port-marker",
+        html: '<i class="fa-solid fa-location-dot" aria-hidden="true"></i>',
+        iconSize: [30, 38], iconAnchor: [15, 36], popupAnchor: [0, -32]
     });
-    L.polyline([ports[0].coords, ports[3].coords], { color: '#005bc4', weight: 3, dashArray: '5, 10' }).addTo(map);
-    L.polyline([ports[2].coords, ports[3].coords], { color: '#005bc4', weight: 3, dashArray: '5, 10' }).addTo(map);
-    L.polyline([ports[4].coords, ports[0].coords], { color: '#005bc4', weight: 3, dashArray: '5, 10' }).addTo(map);
+
+    var bounds = [];
+    data.lines.forEach(function (line) {
+        var a = byKey[line.ports[0]], b = byKey[line.ports[1]];
+        L.polyline([a.coords, b.coords], { color: "#005bc4", weight: 3, dashArray: "6, 10" })
+            .addTo(map)
+            .bindTooltip(esc(a.name) + " ↔ " + esc(b.name) + "<br>" + line.carriers.map(esc).join(", "), { sticky: true });
+    });
+
+    data.ports.forEach(function (p) {
+        bounds.push(p.coords);
+        var dests = data.lines.filter(function (l) { return l.ports.indexOf(p.key) !== -1; })
+            .map(function (l) { return l.ports[0] === p.key ? l.ports[1] : l.ports[0]; });
+        var links = dests.map(function (d) {
+            return '<a href="/schedules?origin=' + encodeURIComponent(p.key) + '&destination=' + encodeURIComponent(d) + '">' +
+                esc(byKey[d].name) + '</a>';
+        }).join("<br>");
+        L.marker(p.coords, { icon: icon, title: p.terminal }).addTo(map)
+            .bindPopup('<b>' + esc(p.terminal) + '</b><br><small>' + esc(p.name) + ', ' + esc(p.island) + '</small>' +
+                (links ? '<hr>Routes to:<br>' + links : ''));
+    });
+
+    map.fitBounds(bounds, { padding: [40, 40] });
+})();
 </script>
-</body>
-</html>
+{% endblock %}

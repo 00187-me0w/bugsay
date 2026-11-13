@@ -1,0 +1,66 @@
+{# Shared search form. Expects: routes, query (dict-like, may be empty), compact (bool). #}
+{% set q = query or {} %}
+{% set q_origin = q.get('origin', 'cebu') %}
+{% set q_dest = q.get('destination', '') %}
+{% set q_trip = q.get('trip', 'oneway') %}
+<form class="search-widget{% if compact %} search-widget--compact{% endif %}" id="search-form" action="{{ url_for('schedules') }}" method="get" data-search-form>
+    <script type="application/json" id="route-data">{{ {'routes': routes, 'ports': ports} | tojson }}</script>
+
+    <fieldset class="search-toggles">
+        <legend class="sr-only">Trip type</legend>
+        <label class="toggle"><input type="radio" name="trip" value="oneway"{% if q_trip != 'round' %} checked{% endif %}> One way</label>
+        <label class="toggle"><input type="radio" name="trip" value="round"{% if q_trip == 'round' %} checked{% endif %}> Round trip</label>
+        <span class="round-note" data-round-note hidden></span>
+    </fieldset>
+
+    <div class="search-grid">
+        <div class="search-field">
+            <label for="origin">From</label>
+            <select id="origin" name="origin" required>
+                {% for key in routes %}
+                <option value="{{ key }}"{% if key == q_origin %} selected{% endif %}>⚓ {{ ports[key].name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="button" class="swap-btn" data-swap title="Swap origin and destination">
+            <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i><span class="sr-only">Swap origin and destination</span>
+        </button>
+        <div class="search-field">
+            <label for="destination">To</label>
+            <select id="destination" name="destination" required data-selected="{{ q_dest }}">
+                {# Filled in by site.js with ports reachable from the chosen origin. #}
+                {% for key, port in ports.items() %}
+                <option value="{{ key }}"{% if key == q_dest %} selected{% endif %}>◎ {{ port.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="search-field">
+            <label for="date">Departure</label>
+            <input type="date" id="date" name="date" value="{{ q.get('date', today.isoformat()) }}" min="{{ today.isoformat() }}" required>
+        </div>
+        <div class="search-field" data-return-field hidden>
+            <label for="return_date">Return</label>
+            <input type="date" id="return_date" name="return_date" value="{{ q.get('return_date', '') }}" min="{{ today.isoformat() }}">
+        </div>
+        <div class="search-field search-field--small">
+            <label for="passengers">Passengers</label>
+            <select id="passengers" name="passengers">
+                {% for n in range(1, max_passengers + 1) %}
+                <option value="{{ n }}"{% if q.get('passengers', '1') == n|string %} selected{% endif %}>{{ n }} {{ 'passenger' if n == 1 else 'passengers' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-primary search-submit">Search ferries <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
+    </div>
+
+    {% if not compact %}
+    <div class="search-footer">
+        <div class="popular">Popular crossings
+            <a href="{{ url_for('schedules', origin='cebu', destination='baybay') }}">Cebu → Baybay</a>
+            <a href="{{ url_for('schedules', origin='cebu', destination='ormoc') }}">Cebu → Ormoc</a>
+            <a href="{{ url_for('schedules', origin='hilongos', destination='ubay') }}">Hilongos → Ubay</a>
+        </div>
+        <div>Your island connection starts here.</div>
+    </div>
+    {% endif %}
+</form>

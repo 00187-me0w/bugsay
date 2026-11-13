@@ -1,83 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugsay | Explore Visayas</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
-        <ul class="nav-links">
-            <li><a href="/schedules">Schedules</a></li>
-            <li><a href="/map">Port map</a></li>
-            <li><a href="/updates">Travel updates</a></li>
-            <li><a href="/tourism" style="color: var(--primary);">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
-        </ul>
-        <div class="nav-actions">
-            <a href="#">Sign in</a>
-            <a href="/schedules" class="btn-primary" style="text-decoration: none;">Find a ferry</a>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Explore the Visayas{% endblock %}
 
-    <div class="section-header" style="margin-top: 4rem;">
-        <p class="section-label">Across the water, something wonderful</p>
-        <h2 class="section-title">Explore the Visayas</h2>
-        <p class="section-subtitle">Discover island destinations easily accessible via our partner ferry operators.</p>
-    </div>
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Across the water, something wonderful</p>
+    <h2 class="section-title">Explore the Visayas</h2>
+    <p class="section-subtitle">Island destinations within reach of the ports Bugsay lists.</p>
+</div>
 
-    <section class="destinations-grid">
-        <div class="dest-card">
-            <img src="https://media.istockphoto.com/id/2183146991/photo/four-islas.jpg?s=1024x1024&w=is&k=20&c=R7n55xWjVZt_i6gekfbfr-IlO9KG5VwIn4-3XeT8Baw=">
-            <div class="dest-info">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--primary); letter-spacing:1px;">LEYTE</p>
-                <h4>Cuatro Islas <a href="/schedules"><i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary); font-size:1rem;"></i></a></h4>
-                <p>Pristine white sandbars just a short ride from Inopacan and Hilongos.</p>
-            </div>
+<section class="destinations-grid">
+    {% for d in destinations %}
+    <article class="dest-card">
+        <img src="{{ d.image }}" alt="{{ d.name }}, {{ d.island }}" loading="lazy" width="960" height="640">
+        <div class="dest-info">
+            <p class="dest-island">{{ d.island | upper }}</p>
+            <h4>{{ d.name }}</h4>
+            <p>{{ d.blurb }}</p>
+            <a class="link-arrow" href="{{ url_for('schedules', origin='cebu' if d.port != 'ubay' else 'hilongos', destination=d.port) }}">Sail to {{ ports[d.port].name }} →</a>
+            <p class="photo-credit">Photo: <a href="{{ d.source }}" target="_blank" rel="noopener">{{ d.credit }}</a>, {{ d.license }}</p>
         </div>
-        <div class="dest-card">
-            <img src="https://media.istockphoto.com/id/1213315764/photo/kalanggaman-island-malapascua-the-philippines-aerial-photograph.jpg?s=1024x1024&w=is&k=20&c=c4aE9sKmMGtf7UslU7wn4FUot_Yy33Vd5FXBQxkzrBA=">
-            <div class="dest-info">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--primary); letter-spacing:1px;">CEBU</p>
-                <h4>Malapascua <a href="/schedules"><i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary); font-size:1rem;"></i></a></h4>
-                <p>World-famous diving spots accessible via northern Cebu ports.</p>
-            </div>
-        </div>
-        <div class="dest-card">
-            <img src="https://media.istockphoto.com/id/1407661480/photo/chocolate-hills-in-bohol-philippines.jpg?s=1024x1024&w=is&k=20&c=pLhC91fI1efQln-7qR4Nql0ZJ5O6VLbi0lusjCZ4BLE=">
-            <div class="dest-info">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--primary); letter-spacing:1px;">BOHOL</p>
-                <h4>Ubay <a href="/schedules"><i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary); font-size:1rem;"></i></a></h4>
-                <p>Your gateway to an island escape.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="footer-grid">
-            <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
-                <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Plan your trip</h4>
-                <ul><li><a href="/schedules">Ferry schedules</a></li><li><a href="/map">Port map</a></li><li><a href="/updates">Travel updates</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Here to help</h4>
-                <ul><li><a href="/faq">Help & FAQ</a></li><li><a href="/privacy">Privacy policy</a></li></ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>© 2026 Bugsay. All rights reserved.</span>
-        </div>
-    </footer>
-</body>
-</html>
+    </article>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% set icons = {'suspended': 'fa-solid fa-cloud-showers-heavy', 'changed': 'fa-regular fa-clock', 'normal': 'fa-regular fa-circle-check'} %}
+<article class="advisory-card advisory-card--{{ a.level }}">
+    <div class="advisory-label">
+        <span><i class="{{ icons[a.level] }}" aria-hidden="true"></i> {{ a.label }}</span>
+        <time datetime="{{ a.date.isoformat() }}">{{ a.date.strftime('%b %d, %Y') }}</time>
+    </div>
+    <h4>{{ a.title }}</h4>
+    <p>{{ a.body }}</p>
+</article>

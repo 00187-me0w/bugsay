@@ -1,181 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugsay | Schedules & Fares</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
-        <ul class="nav-links">
-            <li><a href="/schedules" style="color: var(--primary);">Schedules</a></li>
-            <li><a href="/map">Port map</a></li>
-            <li><a href="/updates">Travel updates</a></li>
-            <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
-        </ul>
-        <div class="nav-actions">
-            <a href="#" onclick="alert('Student Login coming soon!')">Sign in</a>
-            <a href="/schedules" class="btn-primary" style="text-decoration: none;">Find a ferry <i class="fa-solid fa-magnifying-glass" style="margin-left:5px;"></i></a>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}Schedules &amp; Fares{% endblock %}
 
-    <div class="section-header" style="margin-top: 4rem;">
-        <p class="section-label">Find Your Crossing</p>
-        <h2 class="section-title">Live Schedules & Fares</h2>
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Find your crossing</p>
+    <h2 class="section-title">Schedules &amp; fares</h2>
+    <p class="section-subtitle">Pick your ports and date to see which sailings run that day.</p>
+</div>
+
+{% with compact=True %}{% include "_search_form.html" %}{% endwith %}
+
+<section class="schedules" id="results" aria-live="polite">
+    <div class="results-empty" data-results-placeholder>
+        <i class="fa-solid fa-water" aria-hidden="true"></i>
+        <p>Choose where you're sailing from and to, then press <strong>Search ferries</strong>.</p>
     </div>
+</section>
 
-    <div class="search-widget" style="margin-top: 2rem;">
-        <div class="search-grid">
-            <div class="search-field">
-                <label>From</label>
-                <select id="origin">
-                    <option value="Cebu City">⚓ Cebu City</option>
-                    <option value="Hilongos" selected>⚓ Hilongos</option>
-                    <option value="Ormoc City">⚓ Ormoc City</option>
-                    <option value="Baybay City">⚓ Baybay City</option>
-                    <option value="Ubay City">⚓ Ubay City</option>
+<dialog class="modal" id="reserve-dialog" aria-labelledby="reserve-title">
+    <form method="dialog" class="modal-close-form">
+        <button class="modal-close" value="cancel" aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </form>
+    <h3 id="reserve-title"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Save this trip</h3>
+    <div class="reserve-summary" data-reserve-summary></div>
+
+    <form id="reserve-form" novalidate>
+        <div class="form-row">
+            <label for="r-fare">Accommodation</label>
+            <select id="r-fare" name="fare_class" required></select>
+        </div>
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="r-passengers">Passengers</label>
+                <select id="r-passengers" name="passengers">
+                    {% for n in range(1, max_passengers + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
                 </select>
             </div>
-            <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--primary);"></i>
-            <div class="search-field">
-                <label>To</label>
-                <select id="destination">
-                    <option value="Baybay City" selected>◎ Baybay City</option>
-                    <option value="Hilongos">◎ Hilongos</option>
-                    <option value="Cebu City">◎ Cebu City</option>
-                    <option value="Ormoc City">◎ Ormoc City</option>
-                    <option value="Ubay City">◎ Ubay City</option>
-                </select>
-            </div>
-            <div class="search-field">
-                <label>Departure</label>
-                <input type="date" id="date">
-            </div>
-            <button class="btn-primary" onclick="searchTrips()" style="padding: 1rem 1.5rem;">Search ferries <i class="fa-solid fa-magnifying-glass"></i></button>
-        </div>
-    </div>
-
-    <section class="schedules" id="results-section" style="display: none;">
-        <div class="schedule-container" id="results-container"></div>
-    </section>
-
-    <div id="billing-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 480px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
-                <h3 style="font-size: 1.25rem;"><i class="fa-solid fa-credit-card" style="color: var(--primary);"></i> Secure Checkout</h3>
-                <button onclick="document.getElementById('billing-modal').style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.25rem; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form onsubmit="processPayment(event)">
-                <div style="margin-bottom: 1rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Full Name</label>
-                    <input type="text" required placeholder="Juan Dela Cruz" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Email Address</label>
-                    <input type="email" required placeholder="juan@vsu.edu.ph" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Card Number / E-Wallet</label>
-                    <input type="text" required placeholder="XXXX-XXXX-XXXX-XXXX" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Expiry Date</label>
-                        <input type="text" required placeholder="MM/YY" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">CVV</label>
-                        <input type="password" required placeholder="•••" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem; display: flex; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-lock"></i> Confirm Payment
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <div class="footer-grid">
-            <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
-                <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Plan your trip</h4>
-                <ul><li><a href="/schedules">Ferry schedules</a></li><li><a href="/map">Port map</a></li><li><a href="/updates">Travel updates</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Here to help</h4>
-                <ul><li><a href="/faq">Help & FAQ</a></li><li><a href="/privacy">Privacy policy</a></li></ul>
+            <div class="form-row">
+                <label for="r-discounted">Student / senior / PWD</label>
+                <select id="r-discounted" name="discounted"></select>
             </div>
         </div>
-        <div class="footer-bottom">
-            <span>© 2026 Bugsay. All rights reserved.</span>
-            <a href="/schedules">See you on the water. ↗</a>
+        <div class="form-row">
+            <label for="r-name">Lead passenger's full name</label>
+            <input type="text" id="r-name" name="name" autocomplete="name" required maxlength="100" placeholder="Juan Dela Cruz">
         </div>
-    </footer>
+        <div class="form-row">
+            <label for="r-email">Email address</label>
+            <input type="email" id="r-email" name="email" autocomplete="email" required maxlength="254" placeholder="juan@example.com">
+        </div>
+        <p class="form-error" data-form-error hidden></p>
 
-    <script>
-        document.getElementById('date').valueAsDate = new Date();
+        <div class="reserve-total">
+            <span>Estimated total</span>
+            <strong data-total>₱0</strong>
+        </div>
+        <p class="hint">Discounted passengers ({{ discount_pct }}% off) must show a valid school, senior citizen or PWD ID at the counter.
+            <strong>No payment is taken online</strong>—you pay the carrier when you buy your ticket at the port.</p>
 
-        async function searchTrips() {
-            const origin = document.getElementById('origin').value;
-            const destination = document.getElementById('destination').value;
-            
-            const response = await fetch('/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origin, destination })
-            });
-            const trips = await response.json();
-            const container = document.getElementById('results-container');
-            document.getElementById('results-section').style.display = 'block';
-            container.innerHTML = '';
-            
-            if (trips.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color: var(--text-muted);">No trips scheduled for this route today.</p>';
-            } else {
-                trips.forEach(trip => {
-                    container.innerHTML += `
-                        <div class="schedule-card">
-                            <div class="carrier-info">
-                                <i class="fa-solid fa-ship" style="font-size: 1.5rem; color: var(--primary); background: #e0e7ff; padding: 10px; border-radius: 8px;"></i>
-                                <div><h5>${trip.company}</h5><p>${trip.type} · ${trip.status}</p></div>
-                            </div>
-                            <div class="trip-timeline">
-                                <div class="time"><h4>${trip.departure}</h4><p>Departure</p></div>
-                                <div class="duration">${trip.duration}<br><i class="fa-solid fa-ship"></i><br>Direct crossing</div>
-                                <div class="time"><h4>${trip.arrival}</h4><p>Arrival</p></div>
-                            </div>
-                            <div class="trip-price"><span>Fare from</span><h4>₱${trip.price}</h4></div>
-                            <div style="text-align: right;"><button class="btn-primary" onclick="document.getElementById('billing-modal').style.display='flex'">Book Now</button></div>
-                        </div>`;
-                });
-            }
-        }
+        <button type="submit" class="btn-primary btn-block"><i class="fa-regular fa-floppy-disk" aria-hidden="true"></i> Save trip plan</button>
+    </form>
+</dialog>
+{% endblock %}
 
-        async function processPayment(event) {
-            event.preventDefault();
-            const btn = event.target.querySelector('button[type="submit"]');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            await fetch('/book', { method: 'POST' });
-            
-            document.getElementById('billing-modal').style.display = 'none';
-            btn.innerHTML = '<i class="fa-solid fa-lock"></i> Confirm Payment';
-            alert("Booking Confirmed! Your e-ticket has been sent to your email.");
-            event.target.reset();
-        }
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script>window.BUGSAY = { discountRate: {{ (discount_pct / 100) | tojson }} };</script>
+<script src="{{ url_for('static', filename='js/schedules.js') }}"></script>
+{% endblock %}

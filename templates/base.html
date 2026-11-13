@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ferry Schedules{% endblock %} | Bugsay</title>
+    <meta name="description" content="{% block description %}Find ferry schedules, compare fares and plan your crossing between Cebu, Leyte and Bohol.{% endblock %}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block head %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="navbar" aria-label="Main">
+        <a href="{{ url_for('home') }}" class="nav-brand"><i class="fa-solid fa-ship" aria-hidden="true"></i> bugsay</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i><span class="sr-only">Menu</span>
+        </button>
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-links">
+                {% for endpoint, label in nav_items %}
+                <li><a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint %} class="active" aria-current="page"{% endif %}>{{ label }}</a></li>
+                {% endfor %}
+            </ul>
+            <div class="nav-actions">
+                <a href="{{ url_for('booking_lookup') }}"{% if request.endpoint in ('booking_lookup', 'booking_detail') %} class="active"{% endif %}><i class="fa-regular fa-id-card" aria-hidden="true"></i> My trip</a>
+                <a href="{{ url_for('schedules') }}" class="btn-primary">Find a ferry <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <h3 class="footer-brand"><i class="fa-solid fa-ship" aria-hidden="true"></i> bugsay</h3>
+                <p class="footer-tagline">Bringing the Visayas a little closer.</p>
+                <p class="footer-note">Bugsay is a prototype. Schedules and fares are for reference only and may be out of date. Always confirm with the carrier before you travel.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Plan your trip</h4>
+                <ul>
+                    <li><a href="{{ url_for('schedules') }}">Ferry schedules</a></li>
+                    <li><a href="{{ url_for('route_map') }}">Port map</a></li>
+                    <li><a href="{{ url_for('updates') }}">Travel updates</a></li>
+                    <li><a href="{{ url_for('booking_lookup') }}">Find my trip</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Discover</h4>
+                <ul>
+                    <li><a href="{{ url_for('tourism') }}">Explore the Visayas</a></li>
+                    <li><a href="{{ url_for('rewards') }}">Bugsay Rewards</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Here to help</h4>
+                <ul>
+                    <li><a href="{{ url_for('faq') }}">Help &amp; FAQ</a></li>
+                    <li><a href="{{ url_for('privacy') }}">Privacy policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; {{ today.year }} Bugsay. All rights reserved.</span>
+            <a href="{{ url_for('schedules') }}">See you on the water. ↗</a>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/site.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
