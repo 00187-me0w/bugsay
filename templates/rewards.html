@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Bugsay Rewards{% endblock %}
+
+{% block content %}
+<div class="container page-top">
+    <div class="rewards-hero">
+        <div>
+            <p class="section-label section-label--light">Commuter rewards · coming soon</p>
+            <h2>Sail more. Earn more.</h2>
+            <p>Bugsay Rewards will give regular commuters points on every trip, with extra perks for students. Join the waitlist to hear when it opens.</p>
+        </div>
+        <i class="fa-solid fa-award rewards-badge" aria-hidden="true"></i>
+    </div>
+
+    <section class="tiers">
+        <div class="tier"><h4><i class="fa-solid fa-anchor" aria-hidden="true"></i> Deckhand</h4><p>Your first trips. Earn 1 point for every ₱10 of fare.</p></div>
+        <div class="tier"><h4><i class="fa-solid fa-compass" aria-hidden="true"></i> Navigator</h4><p>After 5 trips. Priority alerts for schedule changes on your routes.</p></div>
+        <div class="tier"><h4><i class="fa-solid fa-ship" aria-hidden="true"></i> Captain</h4><p>After 15 trips. Bonus points on holiday and semester-break sailings.</p></div>
+    </section>
+
+    <div class="panel">
+        <h3><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> Join the waitlist</h3>
+        <p class="section-subtitle">Students who sign up with a university email (ending in <code>.edu.ph</code>) will be first in line for a 2× points multiplier when Rewards launches.</p>
+
+        <form class="waitlist-form" id="waitlist-form" novalidate>
+            <label for="waitlist-email" class="sr-only">Email address</label>
+            <input type="email" id="waitlist-email" name="email" required maxlength="254" placeholder="juan.delacruz@vsu.edu.ph" autocomplete="email">
+            <button type="submit" class="btn-primary">Join waitlist</button>
+        </form>
+        <p class="form-success" id="waitlist-msg" hidden></p>
+        <p class="form-error" id="waitlist-err" hidden></p>
+        <p class="hint">We'll only use your email to tell you when Rewards opens. See our <a href="{{ url_for('privacy') }}">privacy policy</a>.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var form = document.getElementById("waitlist-form");
+    var msg = document.getElementById("waitlist-msg");
+    var err = document.getElementById("waitlist-err");
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        msg.hidden = err.hidden = true;
+        if (!form.reportValidity()) return;
+        fetch("/api/waitlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: form.elements.email.value })
+        }).then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
+          .then(function (res) {
+              if (!res.ok) { err.textContent = res.body.error; err.hidden = false; return; }
+              msg.textContent = res.body.student
+                  ? "You're on the list. We spotted a university email, so you're queued for the student multiplier."
+                  : "You're on the list. We'll email you when Rewards opens.";
+              msg.hidden = false;
+              form.reset();
+          })
+          .catch(function () { err.textContent = "Couldn't reach Bugsay. Try again."; err.hidden = false; });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Ferry Schedules{% endblock %}
+
+{% block content %}
+<header class="hero">
+    <p class="hero-label">● Your next crossing, made simple</p>
+    <h1>Less planning. More sea.<br>Let's go, Bugsay.</h1>
+    <p>Find ferry schedules, compare fares, and plan your way across the Visayas. For the way home—and everywhere next.</p>
+    <div class="hero-location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> A little closer to the islands you love.</div>
+</header>
+
+{% with compact=False, query={} %}{% include "_search_form.html" %}{% endwith %}
+
+<section class="features">
+    <div class="feature-item">
+        <i class="fa-solid fa-route feature-icon" aria-hidden="true"></i>
+        <div class="feature-text"><h4>One search. More choices.</h4><p>Compare routes, carriers, and fares.</p></div>
+    </div>
+    <div class="feature-item">
+        <i class="fa-solid fa-ticket feature-icon" aria-hidden="true"></i>
+        <div class="feature-text"><h4>Your trip, all in one place.</h4><p>Pick a crossing and save a trip plan to show at the counter.</p></div>
+    </div>
+    <div class="feature-item">
+        <i class="fa-regular fa-bell feature-icon" aria-hidden="true"></i>
+        <div class="feature-text"><h4>Know before you go.</h4><p>Check cancellations and trip changes.</p></div>
+    </div>
+</section>
+
+<div class="section-header section-header--split">
+    <div>
+        <p class="section-label">Find your crossing</p>
+        <h2 class="section-title">A better way to get there.</h2>
+        <p class="section-subtitle">A morning departure or a night on the water—compare what works for you.</p>
+    </div>
+    <a href="{{ url_for('schedules') }}" class="link-arrow">Explore all schedules ↗</a>
+</div>
+
+<section class="schedules">
+    <div class="route-tabs" role="tablist">
+        {% for f in featured %}
+        <button type="button" class="route-tab{% if loop.first %} active{% endif %}" role="tab"
+                id="tab-{{ f.key }}" aria-controls="panel-{{ f.key }}" aria-selected="{{ 'true' if loop.first else 'false' }}"
+                data-tab="{{ f.key }}">Cebu → {{ f.trip.destination_name }}</button>
+        {% endfor %}
+    </div>
+
+    <div class="schedule-container">
+        <p class="hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Cheapest listed sailing on each route. Fares are for reference—confirm with the carrier.</p>
+        {% for f in featured %}
+        {% set t = f.trip %}
+        <div class="tab-panel" id="panel-{{ f.key }}" role="tabpanel" aria-labelledby="tab-{{ f.key }}"{% if not loop.first %} hidden{% endif %}>
+            <div class="schedule-card">
+                <div class="carrier-info">
+                    <i class="fa-solid fa-ship carrier-icon" aria-hidden="true"></i>
+                    <div><h5>{{ t.company }}</h5><p>{{ t.kind }}{% if t.vessel %} · {{ t.vessel }}{% endif %} · {{ t.days_label }}</p></div>
+                </div>
+                <div class="trip-timeline">
+                    <div class="time"><h4>{{ t.depart_label }}</h4><p>{{ t.origin_name }}</p></div>
+                    <div class="duration">{{ t.duration_label }}<br><i class="fa-solid fa-ship" aria-hidden="true"></i><br>Direct crossing</div>
+                    <div class="time"><h4>{{ t.arrive_label }}{% if t.next_day %} <sup class="next-day">+1</sup>{% endif %}</h4><p>{{ t.destination_name }}</p></div>
+                </div>
+                <div class="trip-price"><span>Fare from</span><h4>{{ t.min_fare | peso }}</h4></div>
+                <div class="trip-action"><a href="{{ url_for('schedules', origin='cebu', destination=f.key) }}" class="btn-outline">All {{ f.count }} sailings →</a></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="campus-promo">
+    <div>
+        <img src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=800&q=80" class="campus-img" alt="Coastal road beside the sea" loading="lazy">
+    </div>
+    <div class="campus-text">
+        <p class="section-label">For the journey back to campus</p>
+        <h2 class="section-title">Next stop: a new semester.</h2>
+        <p class="section-subtitle">Heading to Visayas State University? Make the sea crossing one less thing to worry about.</p>
+        <ul>
+            <li><i class="fa-regular fa-circle-check" aria-hidden="true"></i> Compare sailings to Baybay and nearby Ormoc.</li>
+            <li><i class="fa-regular fa-circle-check" aria-hidden="true"></i> Students get {{ discount_pct }}% off regular fares—bring a valid school ID.</li>
+        </ul>
+        <a href="{{ url_for('schedules', origin='cebu', destination='baybay') }}" class="btn-primary">Plan your trip to VSU →</a>
+    </div>
+</section>
+
+<div class="section-header section-header--split">
+    <div>
+        <p class="section-label">Before you leave</p>
+        <h2 class="section-title">Stay a step ahead of your sailing.</h2>
+    </div>
+    <a href="{{ url_for('updates') }}" class="link-arrow">View all travel updates ↗</a>
+</div>
+
+<section class="advisories-grid">
+    {% for a in advisories %}{% include "_advisory.html" %}{% endfor %}
+</section>
+
+<section class="faq-section">
+    <div>
+        <p class="section-label">A little help before you sail</p>
+        <h2 class="section-title section-title--md">Good questions.<br>Smoother journeys.</h2>
+        <a href="{{ url_for('faq') }}" class="link-arrow">Visit the full help &amp; FAQ page ↗</a>
+    </div>
+    <div class="faq-list">
+        <a class="faq-item" href="{{ url_for('faq') }}#vsu"><span>How do I find a ferry to VSU?</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        <a class="faq-item" href="{{ url_for('faq') }}#compare"><span>Can I compare different ferry companies?</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        <a class="faq-item" href="{{ url_for('faq') }}#discounts"><span>Are student discounts available?</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+</section>
+
+<section class="cta-banner">
+    <div>
+        <p class="section-label section-label--light">Your islands are calling</p>
+        <h2 class="section-title">Home, campus, or somewhere new.</h2>
+        <p>Find a crossing that takes you closer. Let's Bugsay.</p>
+    </div>
+    <a href="{{ url_for('schedules') }}" class="btn-outline btn-outline--light">Find your next ferry →</a>
+</section>
+{% endblock %}

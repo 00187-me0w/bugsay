@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<div class="narrow page-top center">
+    <p class="section-label">404</p>
+    <h2 class="section-title">This page has drifted off.</h2>
+    <p class="section-subtitle">The page you were looking for doesn't exist.</p>
+    <div class="button-row button-row--center">
+        <a href="{{ url_for('home') }}" class="btn-outline">Go home</a>
+        <a href="{{ url_for('schedules') }}" class="btn-primary">Find a ferry</a>
+    </div>
+</div>
+{% endblock %}

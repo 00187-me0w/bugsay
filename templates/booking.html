@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Trip {{ booking.reference }}{% endblock %}
+
+{% block content %}
+<div class="narrow page-top">
+    <p class="section-label">Trip plan saved</p>
+    <h2 class="section-title">Your reference is <span class="ref-code">{{ booking.reference }}</span></h2>
+    <p class="section-subtitle">Keep this page or write down the reference. You can find it again under <a href="{{ url_for('booking_lookup') }}">My trip</a>.</p>
+
+    <div class="notice notice--info">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <div><strong>This is not a ticket.</strong> Bugsay is a prototype and doesn't sell tickets or contact carriers yet.
+            Buy your ticket at the {{ trip.company }} counter at {{ ports[trip.origin].terminal }} and pay there.</div>
+    </div>
+
+    <article class="ticket">
+        <div class="ticket-route">
+            <div><span>From</span><h3>{{ trip.origin_name }}</h3><p>{{ ports[trip.origin].terminal }}</p></div>
+            <i class="fa-solid fa-ship" aria-hidden="true"></i>
+            <div class="right"><span>To</span><h3>{{ trip.destination_name }}</h3><p>{{ ports[trip.destination].terminal }}</p></div>
+        </div>
+        <dl class="ticket-grid">
+            <div><dt>Date</dt><dd>{{ travel_date.strftime('%a, %b %d, %Y') }}</dd></div>
+            <div><dt>Departs</dt><dd>{{ trip.depart_label }}</dd></div>
+            <div><dt>Arrives</dt><dd>{{ trip.arrive_label }}{% if trip.next_day %} (next day){% endif %}</dd></div>
+            <div><dt>Carrier</dt><dd>{{ trip.company }}{% if trip.vessel %} · {{ trip.vessel }}{% endif %}</dd></div>
+            <div><dt>Accommodation</dt><dd>{{ booking.fare_class }}</dd></div>
+            <div><dt>Passengers</dt><dd>{{ booking.passengers }}{% if booking.discounted %} ({{ booking.discounted }} discounted){% endif %}</dd></div>
+            <div><dt>Lead passenger</dt><dd>{{ booking.name }}</dd></div>
+            <div><dt>Estimated fare</dt><dd class="ticket-total">{{ booking.total | peso }}</dd></div>
+        </dl>
+    </article>
+
+    <h3 class="checklist-title">Before you go</h3>
+    <ul class="checklist">
+        <li><i class="fa-regular fa-clock" aria-hidden="true"></i> Arrive at the terminal at least an hour before departure.</li>
+        <li><i class="fa-regular fa-id-card" aria-hidden="true"></i> Bring a valid ID for every passenger{% if booking.discounted %}, plus school, senior or PWD ID for discounted fares{% endif %}.</li>
+        <li><i class="fa-solid fa-cloud-sun-rain" aria-hidden="true"></i> Check <a href="{{ url_for('updates') }}">travel updates</a> and the carrier's notices for weather cancellations.</li>
+    </ul>
+
+    <div class="button-row">
+        <button type="button" class="btn-outline" onclick="window.print()"><i class="fa-solid fa-print" aria-hidden="true"></i> Print</button>
+        <a href="{{ url_for('schedules') }}" class="btn-primary">Plan another trip</a>
+    </div>
+</div>
+{% endblock %}

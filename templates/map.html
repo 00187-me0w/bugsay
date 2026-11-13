@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Port Map{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Explore</p>
+    <h2 class="section-title">Visayas sea routes</h2>
+    <p class="section-subtitle">Every port and route Bugsay lists, across Cebu, Leyte and Bohol. Tap a port to see where you can sail from it.</p>
+</div>
+
+<div class="map-wrap">
+    <div id="route-map" role="region" aria-label="Map of ports and ferry routes"></div>
+</div>
+
+<section class="port-list">
+    {% for p in port_list %}
+    <div class="port-item">
+        <i class="fa-solid fa-anchor" aria-hidden="true"></i>
+        <div>
+            <h4>{{ p.terminal }}</h4>
+            <p>{{ p.name }}, {{ p.island }} · {{ departures[p.key] }} departure{{ '' if departures[p.key] == 1 else 's' }} listed</p>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script type="application/json" id="map-data">{{ {'ports': port_list, 'lines': lines} | tojson }}</script>
+<script>
+(function () {
+    var data = JSON.parse(document.getElementById("map-data").textContent);
+    var byKey = {};
+    data.ports.forEach(function (p) { byKey[p.key] = p; });
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+    }
+
+    var map = L.map("route-map", { scrollWheelZoom: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var icon = L.divIcon({
+        className: "port-marker",
+        html: '<i class="fa-solid fa-location-dot" aria-hidden="true"></i>',
+        iconSize: [30, 38], iconAnchor: [15, 36], popupAnchor: [0, -32]
+    });
+
+    var bounds = [];
+    data.lines.forEach(function (line) {
+        var a = byKey[line.ports[0]], b = byKey[line.ports[1]];
+        L.polyline([a.coords, b.coords], { color: "#005bc4", weight: 3, dashArray: "6, 10" })
+            .addTo(map)
+            .bindTooltip(esc(a.name) + " ↔ " + esc(b.name) + "<br>" + line.carriers.map(esc).join(", "), { sticky: true });
+    });
+
+    data.ports.forEach(function (p) {
+        bounds.push(p.coords);
+        var dests = data.lines.filter(function (l) { return l.ports.indexOf(p.key) !== -1; })
+            .map(function (l) { return l.ports[0] === p.key ? l.ports[1] : l.ports[0]; });
+        var links = dests.map(function (d) {
+            return '<a href="/schedules?origin=' + encodeURIComponent(p.key) + '&destination=' + encodeURIComponent(d) + '">' +
+                esc(byKey[d].name) + '</a>';
+        }).join("<br>");
+        L.marker(p.coords, { icon: icon, title: p.terminal }).addTo(map)
+            .bindPopup('<b>' + esc(p.terminal) + '</b><br><small>' + esc(p.name) + ', ' + esc(p.island) + '</small>' +
+                (links ? '<hr>Routes to:<br>' + links : ''));
+    });
+
+    map.fitBounds(bounds, { padding: [40, 40] });
+})();
+</script>
+{% endblock %}

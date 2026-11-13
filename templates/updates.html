@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Travel Updates{% endblock %}
+
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Before you leave</p>
+    <h2 class="section-title">Port &amp; travel updates</h2>
+    <p class="section-subtitle">Weather cancellations, schedule changes and terminal announcements.</p>
+</div>
+
+<div class="notice notice--warn page-notice">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    <div>The advisories below are <strong>examples</strong> of what Bugsay will show. For real-time
+        sailing status, check the Philippine Coast Guard's official advisories and your carrier's
+        own announcements before leaving for the port.</div>
+</div>
+
+<section class="advisories-grid">
+    {% for a in advisories %}{% include "_advisory.html" %}{% endfor %}
+</section>
+{% endblock %}

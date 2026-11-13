@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Schedules &amp; Fares{% endblock %}
+
+{% block content %}
+<div class="section-header page-top">
+    <p class="section-label">Find your crossing</p>
+    <h2 class="section-title">Schedules &amp; fares</h2>
+    <p class="section-subtitle">Pick your ports and date to see which sailings run that day.</p>
+</div>
+
+{% with compact=True %}{% include "_search_form.html" %}{% endwith %}
+
+<section class="schedules" id="results" aria-live="polite">
+    <div class="results-empty" data-results-placeholder>
+        <i class="fa-solid fa-water" aria-hidden="true"></i>
+        <p>Choose where you're sailing from and to, then press <strong>Search ferries</strong>.</p>
+    </div>
+</section>
+
+<dialog class="modal" id="reserve-dialog" aria-labelledby="reserve-title">
+    <form method="dialog" class="modal-close-form">
+        <button class="modal-close" value="cancel" aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </form>
+    <h3 id="reserve-title"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Save this trip</h3>
+    <div class="reserve-summary" data-reserve-summary></div>
+
+    <form id="reserve-form" novalidate>
+        <div class="form-row">
+            <label for="r-fare">Accommodation</label>
+            <select id="r-fare" name="fare_class" required></select>
+        </div>
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="r-passengers">Passengers</label>
+                <select id="r-passengers" name="passengers">
+                    {% for n in range(1, max_passengers + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="r-discounted">Student / senior / PWD</label>
+                <select id="r-discounted" name="discounted"></select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="r-name">Lead passenger's full name</label>
+            <input type="text" id="r-name" name="name" autocomplete="name" required maxlength="100" placeholder="Juan Dela Cruz">
+        </div>
+        <div class="form-row">
+            <label for="r-email">Email address</label>
+            <input type="email" id="r-email" name="email" autocomplete="email" required maxlength="254" placeholder="juan@example.com">
+        </div>
+        <p class="form-error" data-form-error hidden></p>
+
+        <div class="reserve-total">
+            <span>Estimated total</span>
+            <strong data-total>₱0</strong>
+        </div>
+        <p class="hint">Discounted passengers ({{ discount_pct }}% off) must show a valid school, senior citizen or PWD ID at the counter.
+            <strong>No payment is taken online</strong>—you pay the carrier when you buy your ticket at the port.</p>
+
+        <button type="submit" class="btn-primary btn-block"><i class="fa-regular fa-floppy-disk" aria-hidden="true"></i> Save trip plan</button>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>window.BUGSAY = { discountRate: {{ (discount_pct / 100) | tojson }} };</script>
+<script src="{{ url_for('static', filename='js/schedules.js') }}"></script>
+{% endblock %}

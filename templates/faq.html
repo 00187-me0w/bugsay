@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Help &amp; FAQ{% endblock %}
+
+{% block content %}
+<section class="faq-section page-top">
+    <div>
+        <p class="section-label">A little help before you sail</p>
+        <h2 class="section-title section-title--md">Good questions.<br>Smoother journeys.</h2>
+        <p class="section-subtitle">From your first ferry ride to your weekly commute, a little preparation goes a long way.</p>
+    </div>
+    <div class="faq-list faq-list--accordion">
+        <details id="what">
+            <summary>What is Bugsay?</summary>
+            <p>Bugsay is a website for looking up and comparing boat and ferry schedules across the Visayas—currently routes between Cebu, Leyte and Bohol. It's an early prototype, so schedules and fares are reference values and may be out of date.</p>
+        </details>
+        <details id="vsu">
+            <summary>How do I find a ferry to VSU?</summary>
+            <p>Visayas State University is in Baybay City, Leyte. On <a href="{{ url_for('schedules', origin='cebu', destination='baybay') }}">Schedules</a>, choose <strong>Cebu City → Baybay City</strong> and your date. Roble Shipping and Lapu-Lapu Shipping sail this route overnight on alternating days. If nothing runs on your date, sailing to Ormoc City or Hilongos and continuing by road is a common alternative.</p>
+        </details>
+        <details id="compare">
+            <summary>Can I compare different ferry companies?</summary>
+            <p>Yes. A search shows every carrier we list for that route on your date, with departure and arrival times, crossing time, and fares for each accommodation class.</p>
+        </details>
+        <details id="buy">
+            <summary>Can I buy my ticket on Bugsay?</summary>
+            <p>Not yet. You can save a <strong>trip plan</strong> with a reference number and an estimated fare, but Bugsay doesn't take payments or issue tickets. Buy your ticket from the carrier—at the port's ticket counter or through the carrier's own official channels.</p>
+        </details>
+        <details id="discounts">
+            <summary>Are student discounts available?</summary>
+            <p>Yes. Under Philippine law, students (RA 11314), senior citizens (RA 9994) and persons with disability (RA 10754) get {{ discount_pct }}% off regular fares on public sea transport. Bring a valid school, senior citizen or PWD ID—the carrier checks it when you buy your ticket. Bugsay's fare estimates include the discount when you add discounted passengers.</p>
+        </details>
+        <details id="weather">
+            <summary>What happens if my trip is cancelled because of weather?</summary>
+            <p>The Philippine Coast Guard can suspend sailings when sea conditions are unsafe. Carriers usually rebook or refund under their own policies—ask at the counter. Check <a href="{{ url_for('updates') }}">travel updates</a> and the carrier's announcements before leaving for the port.</p>
+        </details>
+        <details id="overnight">
+            <summary>What does "+1" next to an arrival time mean?</summary>
+            <p>The sailing arrives the day after it departs. Many Cebu–Leyte trips leave at night and arrive in the early morning.</p>
+        </details>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Open the question linked from another page (e.g. /faq#discounts).
+    if (location.hash) {
+        var d = document.querySelector("details" + CSS.escape(location.hash));
+        if (d) { d.open = true; d.scrollIntoView({ block: "center" }); }
+    }
+</script>
+{% endblock %}
