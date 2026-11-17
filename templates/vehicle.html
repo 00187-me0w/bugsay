@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bugsay | Vehicle Freight & Rates</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 40px; width: auto; object-fit: contain;">
+            <span>bugsay</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/schedules">Schedules</a></li>
+            <li><a href="/map">Port map</a></li>
+            <li><a href="/updates">Travel updates</a></li>
+            <li><a href="/tourism">Explore Visayas</a></li>
+            <li><a href="/vehicle" style="color: var(--primary);">Vehicle Rates</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="#" onclick="alert('Student Login coming soon!')">Sign in</a>
+            <a href="/schedules" class="btn-primary" style="text-decoration: none;">Find a ferry <i class="fa-solid fa-magnifying-glass" style="margin-left:5px;"></i></a>
+        </div>
+    </nav>
+
+    <div class="section-header" style="margin-top: 4rem;">
+        <p class="section-label">RoRo & Freight Rates</p>
+        <h2 class="section-title">Vehicle Transport Fares</h2>
+        <p class="section-subtitle">Find rates and shipping schedules for motorcycles, cars, trucks, and buses across Visayas ports.</p>
+    </div>
+
+    <!-- Vehicle Search Widget with Vehicle Type Selection -->
+    <div class="search-widget" style="margin-top: 2rem;">
+        <div class="search-grid">
+            <div class="search-field">
+                <label>From</label>
+                <select id="origin">
+                    <option value="Cebu City" selected>⚓ Cebu City</option>
+                    <option value="Hilongos">⚓ Hilongos</option>
+                    <option value="Baybay City">⚓ Baybay City</option>
+                    <option value="Ormoc City">⚓ Ormoc City</option>
+                    <option value="Bato">⚓ Bato</option>
+                    <option value="Ubay">⚓ Ubay</option>
+                </select>
+            </div>
+            <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--primary);"></i>
+            <div class="search-field">
+                <label>To</label>
+                <select id="destination">
+                    <option value="Baybay City">◎ Baybay City</option>
+                    <option value="Hilongos" selected>◎ Hilongos</option>
+                    <option value="Cebu City">◎ Cebu City</option>
+                    <option value="Ormoc City">◎ Ormoc City</option>
+                    <option value="Ubay">◎ Ubay</option>
+                    <option value="Bato">◎ Bato</option>
+                </select>
+            </div>
+            <div class="search-field">
+                <label>Vehicle Type</label>
+                <select id="vehicle_type">
+                    <option value="All"> All Vehicle Types</option>
+                    <option value="Motorcycle"> Motorcycle</option>
+                    <option value="Car"> Car / Sedan</option>
+                    <option value="SUV/Van"> SUV / Van</option>
+                    <option value="Truck"> Truck</option>
+                    <option value="Bus"> Bus</option>
+                </select>
+            </div>
+            <div class="search-field">
+                <label>Shipment Date</label>
+                <input type="date" id="date">
+            </div>
+            <button class="btn-primary" onclick="searchVehicles()" style="padding: 1rem 1.5rem;">Search Rates <i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+    </div>
+
+    <!-- Search Results Section -->
+    <section class="schedules" id="results-section" style="display: none;">
+        <div class="schedule-container" id="results-container"></div>
+    </section>
+
+    <!-- SECURE CHECKOUT MODAL -->
+    <div id="billing-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.25rem;"><i class="fa-solid fa-truck-ramp-box" style="color: var(--primary);"></i> Vehicle Freight Checkout</h3>
+                <button onclick="document.getElementById('billing-modal').style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.25rem; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Dynamic Order Summary -->
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-muted);">
+                    <span id="summary-base-label">Vehicle Freight Rate (1 vehicle)</span>
+                    <span id="summary-base-fare">₱0</span>
+                </div>
+                <div id="summary-discount-row" style="display: none; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; color: #10b981; font-weight: 600;">
+                    <span>Student Discount (20%) <i class="fa-solid fa-circle-check"></i></span>
+                    <span id="summary-discount">-₱0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.8rem; color: var(--text-muted);">
+                    <span id="summary-service-fee-label">Vehicle Service Fee (per vehicle)</span>
+                    <span id="summary-service-fee">₱50</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 0.8rem; font-weight: 700; font-size: 1.1rem; color: var(--text-dark);">
+                    <span>Total Payment</span>
+                    <span id="summary-total-fare" style="color: var(--primary);">₱0</span>
+                </div>
+            </div>
+
+            <form onsubmit="processPayment(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label for="booking-quantity" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Number of vehicles</label>
+                    <input type="number" id="booking-quantity" min="1" step="1" value="1" required oninput="updateQuantity()" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Owner / Driver Name</label>
+                        <input type="text" required placeholder="Juan Dela Cruz" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Email Address</label>
+                        <input type="email" id="input-email" required placeholder="juan@vsu.edu.ph" oninput="checkStudentDiscount()" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px; transition: 0.3s;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Payment Method</label>
+                    <div style="display: flex; gap: 1rem; margin-top: 6px;">
+                        <label style="flex: 1; border: 1px solid var(--primary); background: #f0f4f8; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500;" id="label-ewallet">
+                            <input type="radio" name="pay_mode" value="ewallet" checked onchange="togglePaymentMode()" style="accent-color: var(--primary);"> E-Wallet (GCash/Maya)
+                        </label>
+                        <label style="flex: 1; border: 1px solid var(--border); background: white; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500;" id="label-card">
+                            <input type="radio" name="pay_mode" value="card" onchange="togglePaymentMode()" style="accent-color: var(--primary);"> Credit/Debit Card
+                        </label>
+                    </div>
+                </div>
+
+                <div id="fields-ewallet" style="margin-bottom: 1.5rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mobile Number linked to E-Wallet</label>
+                    <input type="tel" id="input-ewallet" required placeholder="09XX XXX XXXX" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                </div>
+
+                <div id="fields-card" style="display: none; margin-bottom: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Card Number</label>
+                        <input type="text" id="input-cardnum" placeholder="XXXX-XXXX-XXXX-XXXX" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Expiry Date</label>
+                            <input type="text" id="input-cardexp" placeholder="MM/YY" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">CVV</label>
+                            <input type="password" id="input-cardcvv" placeholder="•••" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1rem; display: flex; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-lock"></i> Confirm Freight Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:12px;">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 32px; width: auto; object-fit: contain;"> 
+                    <span>bugsay</span>
+                </h3>
+                <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Plan your trip</h4>
+                <ul><li><a href="/schedules">Ferry schedules</a></li><li><a href="/vehicle">Vehicle rates</a></li><li><a href="/map">Port map</a></li><li><a href="/updates">Travel updates</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Discover</h4>
+                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
+            </div>
+            <div class="footer-col">
+                <h4>Here to help</h4>
+                <ul><li><a href="/faq">Help & FAQ</a></li><li><a href="/privacy">Privacy policy</a></li></ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 Bugsay. All rights reserved.</span>
+            <a href="/schedules">See you on the water. ↗</a>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('date').valueAsDate = new Date();
+        
+        let currentUnitFare = 0;
+        let currentQuantity = 1;
+        const platformServiceFee = 50;
+
+        function togglePaymentMode() {
+            const mode = document.querySelector('input[name="pay_mode"]:checked').value;
+            const labelEwallet = document.getElementById('label-ewallet');
+            const labelCard = document.getElementById('label-card');
+
+            if(mode === 'ewallet') {
+                document.getElementById('fields-ewallet').style.display = 'block';
+                document.getElementById('fields-card').style.display = 'none';
+                labelEwallet.style.background = '#f0f4f8';
+                labelEwallet.style.borderColor = 'var(--primary)';
+                labelCard.style.background = 'white';
+                labelCard.style.borderColor = 'var(--border)';
+                document.getElementById('input-ewallet').required = true;
+                document.getElementById('input-cardnum').required = false;
+                document.getElementById('input-cardexp').required = false;
+                document.getElementById('input-cardcvv').required = false;
+            } else {
+                document.getElementById('fields-ewallet').style.display = 'none';
+                document.getElementById('fields-card').style.display = 'block';
+                labelCard.style.background = '#f0f4f8';
+                labelCard.style.borderColor = 'var(--primary)';
+                labelEwallet.style.background = 'white';
+                labelEwallet.style.borderColor = 'var(--border)';
+                document.getElementById('input-ewallet').required = false;
+                document.getElementById('input-cardnum').required = true;
+                document.getElementById('input-cardexp').required = true;
+                document.getElementById('input-cardcvv').required = true;
+            }
+        }
+
+        function renderOrderSummary(discountAmount) {
+            const currentBaseFare = currentUnitFare * currentQuantity;
+            const serviceFee = platformServiceFee * currentQuantity;
+            const totalFare = currentBaseFare - discountAmount + serviceFee;
+            document.getElementById('summary-base-label').innerText =
+                `Vehicle Freight Rate (${currentQuantity} ${currentQuantity === 1 ? 'vehicle' : 'vehicles'})`;
+            document.getElementById('summary-base-fare').innerText = '₱' + currentBaseFare;
+            document.getElementById('summary-service-fee-label').innerText =
+                `Vehicle Service Fee (${currentQuantity} ${currentQuantity === 1 ? 'vehicle' : 'vehicles'})`;
+            document.getElementById('summary-service-fee').innerText = '₱' + serviceFee;
+            document.getElementById('summary-discount').innerText = '-₱' + discountAmount;
+            document.getElementById('summary-total-fare').innerText = '₱' + totalFare;
+        }
+
+        function updateQuantity() {
+            const quantity = Number(document.getElementById('booking-quantity').value);
+            if (!Number.isInteger(quantity) || quantity < 1) return;
+            currentQuantity = quantity;
+            checkStudentDiscount();
+        }
+
+        function checkStudentDiscount() {
+            const emailInput = document.getElementById('input-email');
+            const email = emailInput.value.trim().toLowerCase();
+            const discountRow = document.getElementById('summary-discount-row');
+            
+            if (email.endsWith('.edu.ph')) {
+                const discountAmount = Math.round(currentUnitFare * currentQuantity * 0.20);
+                discountRow.style.display = 'flex';
+                emailInput.style.borderColor = '#10b981';
+                emailInput.style.backgroundColor = '#ecfdf5';
+                renderOrderSummary(discountAmount);
+            } else {
+                discountRow.style.display = 'none';
+                emailInput.style.borderColor = 'var(--border)';
+                emailInput.style.backgroundColor = 'white';
+                renderOrderSummary(0);
+            }
+        }
+
+        function openBillingModal(price) {
+            currentUnitFare = Number(price);
+            currentQuantity = 1;
+            document.getElementById('booking-quantity').value = '1';
+            
+            document.getElementById('input-email').value = '';
+            document.getElementById('input-email').style.borderColor = 'var(--border)';
+            document.getElementById('input-email').style.backgroundColor = 'white';
+            document.getElementById('summary-discount-row').style.display = 'none';
+            checkStudentDiscount();
+
+            document.getElementById('billing-modal').style.display = 'flex';
+        }
+
+        async function searchVehicles() {
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            const vehicle_type = document.getElementById('vehicle_type').value;
+            
+            const response = await fetch('/vehicle-search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ origin, destination, vehicle_type })
+            });
+            const vehicles = await response.json();
+            const container = document.getElementById('results-container');
+            document.getElementById('results-section').style.display = 'block';
+            container.innerHTML = '';
+            
+            if (vehicles.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 2rem;">No vehicle transport options scheduled for this route and vehicle type.</p>';
+            } else {
+                vehicles.forEach(item => {
+                    container.innerHTML += `
+                        <div class="schedule-card">
+                            <div class="carrier-info">
+                                <i class="fa-solid fa-car-side" style="font-size: 1.5rem; color: var(--primary); background: #e0e7ff; padding: 10px; border-radius: 8px;"></i>
+                                <div><h5>${item.company}</h5><p>Vehicle Freight · RoRo Service</p></div>
+                            </div>
+                            <div class="trip-timeline">
+                                <div class="time"><h4>${item.vehicle_type}</h4><p>Vehicle Class</p></div>
+                                <div class="duration"><br><i class="fa-solid fa-truck-ramp-box"></i><br>Direct Transport</div>
+                                <div class="time"><h4>Cargo</h4><p>Classification</p></div>
+                            </div>
+                            <div class="trip-price" style="text-align: right; min-width: 140px;">
+                                <span>Freight Rate</span>
+                                <h4 class="display-price" style="font-size: 1.25rem; font-weight: 500; margin-top: 4px;">₱${item.price}</h4>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn-primary" onclick="openBillingModal(${item.price})">Book Freight</button>
+                            </div>
+                        </div>`;
+                });
+            }
+        }
+
+        async function processPayment(event) {
+            event.preventDefault();
+            const quantityInput = document.getElementById('booking-quantity');
+            const quantity = Number(quantityInput.value);
+            if (!Number.isInteger(quantity) || quantity < 1) {
+                quantityInput.reportValidity();
+                return;
+            }
+
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const response = await fetch('/book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_type: 'vehicle', quantity })
+                });
+                if (!response.ok) throw new Error(`Booking failed (${response.status})`);
+                const booking = await response.json();
+                if (booking.status !== 'success') throw new Error('Booking was not confirmed');
+
+                document.getElementById('billing-modal').style.display = 'none';
+                alert(`Vehicle Freight Booking Confirmed! ${booking.quantity} ${booking.quantity === 1 ? 'vehicle' : 'vehicles'} booked. Confirmation receipt sent to your email.`);
+                event.target.reset();
+                currentQuantity = 1;
+                checkStudentDiscount();
+
+                document.querySelector('input[value="ewallet"]').checked = true;
+                togglePaymentMode();
+
+                document.getElementById('input-email').style.borderColor = 'var(--border)';
+                document.getElementById('input-email').style.backgroundColor = 'white';
+                document.getElementById('summary-discount-row').style.display = 'none';
+            } catch (error) {
+                console.error('Unable to complete vehicle booking:', error);
+                alert('Could not complete the booking. Please try again.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
