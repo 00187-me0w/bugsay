@@ -9,13 +9,16 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
+        <a href="/" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 40px; width: auto; object-fit: contain;">
+            <span>BUGSAY</span>
+        </a>
         <ul class="nav-links">
             <li><a href="/schedules">Schedules</a></li>
             <li><a href="/map">Port map</a></li>
             <li><a href="/updates">Travel updates</a></li>
             <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
+            <li><a href="/vehicle">Vehicle Booking</a></li>
         </ul>
         <div class="nav-actions">
             <a href="#">Sign in</a>
@@ -37,14 +40,17 @@
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Yes. Bugsay allows users to book tickets directly through the platform, meaning you do not have to wait in line at traditional port counters.</p>
 
             <div class="faq-item"><span>Are student discounts available?</span></div>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Yes. Students can apply their discount during checkout by verifying their university email address.</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Yes. Students get an automatic 20% discount on their base fare by entering a verified university email address ending in .edu.ph during checkout.</p>
         </div>
     </section>
 
     <footer class="footer">
         <div class="footer-grid">
             <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:12px;">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 32px; width: auto; object-fit: contain;"> 
+                    <span>bugsay</span>
+                </h3>
                 <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
             </div>
             <div class="footer-col">
@@ -53,7 +59,7 @@
             </div>
             <div class="footer-col">
                 <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
+                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/vehicle">Vehicle Booking</a></li></ul>
             </div>
             <div class="footer-col">
                 <h4>Here to help</h4>
