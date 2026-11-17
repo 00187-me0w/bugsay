@@ -9,13 +9,16 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
+        <a href="/" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 40px; width: auto; object-fit: contain;">
+            <span>BUGSAY</span>
+        </a>
         <ul class="nav-links">
             <li><a href="/schedules">Schedules</a></li>
             <li><a href="/map">Port map</a></li>
             <li><a href="/updates" style="color: var(--primary);">Travel updates</a></li>
             <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
+            <li><a href="/vehicle">Vehicle Booking</a></li>
         </ul>
         <div class="nav-actions">
             <a href="#">Sign in</a>
@@ -35,8 +38,8 @@
                 <span style="color: #ef4444;"><i class="fa-solid fa-cloud-showers-heavy"></i> Coast Guard Advisory</span>
                 <span style="color:var(--text-muted); font-weight: 500;">Posted 2h ago</span>
             </div>
-            <h4>Weather can change a crossing.</h4>
-            <p>Due to a low-pressure area, all fast craft trips from Cebu to Ormoc City are temporarily suspended until further notice. RORO vessels are operating on a delayed schedule.</p>
+            <h4>MV Gloria 1 Update</h4>
+            <p>Due to a low-pressure area, MV Gloria 1 from Cebu to Hilongos is temporarily suspended until further notice. RORO vessels are operating on a delayed schedule.</p>
         </div>
         <div class="advisory-card" style="border-left: 4px solid #10b981;">
             <div class="advisory-label">
@@ -44,14 +47,17 @@
                 <span style="color:var(--text-muted); font-weight: 500;">Posted 5h ago</span>
             </div>
             <h4>Tide levels stabilized.</h4>
-            <p>Lapu-Lapu Shipping and Roble Shipping have resumed their standard daily schedules at Hilongos Port.</p>
+            <p>Lite Ferries and Roble Shipping have resumed their standard daily schedules at Hilongos Port.</p>
         </div>
     </section>
 
     <footer class="footer">
         <div class="footer-grid">
             <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:12px;">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 32px; width: auto; object-fit: contain;"> 
+                    <span>bugsay</span>
+                </h3>
                 <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
             </div>
             <div class="footer-col">
@@ -60,7 +66,7 @@
             </div>
             <div class="footer-col">
                 <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
+                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/vehicle">Vehicle Booking</a></li></ul>
             </div>
             <div class="footer-col">
                 <h4>Here to help</h4>
