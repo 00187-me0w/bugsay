@@ -10,13 +10,16 @@
 <body>
 
     <nav class="navbar">
-        <a href="/" class="nav-brand"><i class="fa-solid fa-ship"></i> bugsay</a>
+        <a href="/" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 50px; width: auto; object-fit: contain;">
+            <span>BUGSAY</span>
+        </a>
         <ul class="nav-links">
             <li><a href="/schedules">Schedules</a></li>
             <li><a href="/map">Port map</a></li>
             <li><a href="/updates">Travel updates</a></li>
             <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/rewards">Rewards</a></li>
+            <li><a href="/vehicle">Vehicle Booking</a></li>
         </ul>
         <div class="nav-actions">
             <a href="#" onclick="alert('Student Login coming soon!')">Sign in</a>
@@ -26,12 +29,12 @@
 
     <header class="hero">
         <p class="hero-label">● YOUR NEXT CROSSING, MADE SIMPLE</p>
-        <h1>Less planning. More sea.<br>Let's go, Bugsay.</h1>
+        <h1>BUGSAY<br> Your One-Stop Visayas Sea Travel Companion<br></h1>
         <p>Find ferry schedules, compare fares, and book your way across the Visayas. For the way home—and everywhere next.</p>
         <div class="hero-location"><i class="fa-solid fa-location-dot"></i> A little closer to the islands you love.</div>
     </header>
 
-    <div class="search-widget">
+    <div class="search-widget home-search-widget">
         <div class="search-toggles">
             <span><i class="fa-solid fa-circle" style="font-size:0.5rem; margin-right:5px;"></i> One way</span>
             <span style="color: var(--text-muted);"><i class="fa-regular fa-circle" style="font-size:0.5rem; margin-right:5px;"></i> Round trip</span>
@@ -42,30 +45,32 @@
                 <select id="origin">
                     <option value="Cebu City">⚓ Cebu City</option>
                     <option value="Hilongos">⚓ Hilongos</option>
-                    <option value="Ubay City">⚓ Ubay City</option>
+                    <option value="Baybay City">⚓ Baybay City</option>
+                    <option value="Ormoc City">⚓ Ormoc City</option>
+                    <option value="Bato">⚓ Bato</option>
+                    <option value="Ubay">⚓ Ubay</option>
                 </select>
             </div>
             <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--primary);"></i>
             <div class="search-field">
                 <label>To</label>
                 <select id="destination">
-                    <option value="Baybay City">◎ Baybay, Leyte</option>
-                    <option value="Ormoc City">◎ Ormoc, Leyte</option>
-                    <option value="Ubay City">◎ Ubay City</option>
+                    <option value="Baybay City">◎ Baybay City</option>
+                    <option value="Hilongos">◎ Hilongos</option>
+                    <option value="Cebu City">◎ Cebu City</option>
+                    <option value="Ormoc City">◎ Ormoc City</option>
+                    <option value="Ubay">◎ Ubay</option>
+                    <option value="Bato">◎ Bato</option>
                 </select>
             </div>
             <div class="search-field">
                 <label>Departure</label>
                 <input type="date" id="date">
             </div>
-            <div class="search-field" style="flex: 0.5;">
-                <label>Passengers</label>
-                <select><option>👥 1 adult</option></select>
-            </div>
             <a href="/schedules" class="btn-primary" style="padding: 1rem 1.5rem; display: inline-block; text-align: center;">Search ferries <i class="fa-solid fa-magnifying-glass"></i></a>
         </div>
         <div class="search-footer">
-            <div>Popular crossings <a href="/schedules"><span>Cebu → Baybay</span></a> <a href="/schedules"><span>Cebu → Ubay</span></a></div>
+            <div>Popular crossings <a href="/schedules"><span>Cebu → Baybay</span></a> <a href="/schedules"><span>Hilongos → Ubay</span></a></div>
             <div>Your island connection starts here.</div>
         </div>
     </div>
@@ -85,6 +90,12 @@
         </div>
     </section>
 
+    <aside class="ad-slot ad-slot-banner" aria-label="Advertisement">
+        <span class="ad-slot-label">Advertisement</span>
+        <!-- Replace the placeholder with your ad provider's approved ad unit code. -->
+        <div class="ad-slot-placeholder">Ad space</div>
+    </aside>
+
     <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
         <div>
             <p class="section-label">Find Your Crossing</p>
@@ -95,10 +106,9 @@
     </div>
 
     <section class="schedules">
-        
         <div class="route-tabs">
             <div class="route-tab active" onclick="changeTab(this, 'baybay')">Cebu → Baybay</div>
-            <div class="route-tab" onclick="changeTab(this, 'Ubay')">Cebu → Ubay</div>
+            <div class="route-tab" onclick="changeTab(this, 'hilongos')">Ubay → Hilongos</div>
             <div class="route-tab" onclick="changeTab(this, 'ormoc')">Cebu → Ormoc</div>
         </div>
         
@@ -106,7 +116,7 @@
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;"><i class="fa-solid fa-circle-info"></i> Sample schedules only. Carriers, times, and fares are illustrative—not live availability.</p>
             <div class="schedule-card">
                 <div class="carrier-info">
-                    <i class="fa-solid fa-ship" style="font-size: 1.5rem; color: var(--primary); background: #e0e7ff; padding: 10px; border-radius: 8px;"></i>
+                    <i class="fa-solid fa-ship" style="font-size: 1.5rem; color: var(--primary); background: #e0e7ff; padding: 10px; border-radius: 10px;"></i>
                     <div><h5>Island Passage</h5><p>Passenger ferry · Economy</p></div>
                 </div>
                 <div class="trip-timeline">
@@ -115,14 +125,20 @@
                     <div class="time"><h4>13:00</h4><p>Baybay, Leyte</p></div>
                 </div>
                 <div class="trip-price"><span>Sample fare from</span><h4>₱650</h4></div>
-                <div style="text-align: right;"><a href="/schedules" class="btn-outline">View full schedule →</a></div>
+                <div style="text-align: right;"><a href="/schedules" class="btn-outline">View full schedule</a></div>
             </div>
         </div>
     </section>
 
+    <aside class="ad-slot ad-slot-rectangle" aria-label="Advertisement">
+        <span class="ad-slot-label">Advertisement</span>
+        <!-- Replace the placeholder with your ad provider's approved ad unit code. -->
+        <div class="ad-slot-placeholder">Ad space</div>
+    </aside>
+
     <section class="campus-promo">
         <div>
-            <img src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=800&q=80" class="campus-img" alt="Coastal Road">
+            <img src="https://filipinohomes123.s3.ap-southeast-1.amazonaws.com/homestv/articles/20995dfc-6c8f-4f93-b172-39085fc11583.jpeg" class="campus-img" alt="Coastal Road">
         </div>
         <div class="campus-text">
             <p class="section-label">For the journey back to campus</p>
@@ -186,7 +202,10 @@
     <footer class="footer">
         <div class="footer-grid">
             <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ship"></i> bugsay</h3>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:12px;">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 32px; width: auto; object-fit: contain;"> 
+                    <span>bugsay</span>
+                </h3>
                 <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
             </div>
             <div class="footer-col">
@@ -195,7 +214,7 @@
             </div>
             <div class="footer-col">
                 <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/rewards">Bugsay Rewards</a></li></ul>
+                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/vehicle">Vehicle Booking</a></li></ul>
             </div>
             <div class="footer-col">
                 <h4>Here to help</h4>
@@ -211,17 +230,15 @@
     <script>
         document.getElementById('date').valueAsDate = new Date();
 
-        // Data for the interactive tabs
         const tabData = {
             'baybay': { company: 'Island Passage', type: 'Passenger ferry · Economy', depTime: '08:00', arrTime: '13:00', arrPort: 'Baybay, Leyte', dur: '5h 00m', price: '₱650' },
-            'Ubay': { company: 'OceanJet Seaways', type: 'Fast Craft · Tourist', depTime: '06:00', arrTime: '08:00', arrPort: 'Ubay City', dur: '2h 00m', price: '₱800' },
+            'tagbilaran': { company: 'OceanJet Seaways', type: 'Fast Craft · Tourist', depTime: '06:00', arrTime: '08:00', arrPort: 'Tagbilaran City', dur: '2h 00m', price: '₱800' },
             'ormoc': { company: '2GO Travel', type: 'Passenger ferry · Economy', depTime: '10:00', arrTime: '14:00', arrPort: 'Ormoc City', dur: '4h 00m', price: '₱950' }
         };
 
         function changeTab(clickedElement, routeKey) {
             document.querySelectorAll('.route-tab').forEach(tab => tab.classList.remove('active'));
             clickedElement.classList.add('active');
-
             const data = tabData[routeKey];
             
             document.getElementById('sample-container').innerHTML = `
