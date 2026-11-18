@@ -4,7 +4,8 @@
 {% block content %}
 {% set count = passengers|length + vehicles|length %}
 <div class="wrap page-head section" style="max-width: calc(880px + 2 * var(--gutter))">
-    <p class="eyebrow"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Booking confirmed</p>
+    <svg class="confirm-mark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg>
+    <p class="eyebrow">Booking confirmed</p>
     <h1 class="title-1">You're all set. <span class="ref-code">{{ tx.reference }}</span></h1>
     <p class="subhead">{{ count }} ticket{{ '' if count == 1 else 's' }} in one booking. Keep this page or note the reference; you can find it again under <a class="prose-link" href="{{ url_for('booking_lookup') }}">My trip</a>.</p>
 
@@ -35,7 +36,7 @@
     <h2 class="title-3" style="margin-top:2rem">Passenger tickets</h2>
     <div class="tickets">
         {% for t in passengers %}
-        <article class="ticket">
+        <article class="ticket" style="--i: {{ loop.index0 + 2 }}">
             <div class="ticket-top"><span>Ticket {{ loop.index }} of {{ passengers|length }}</span><code>{{ tx.reference }}-{{ '%02d' % t.seq }}</code></div>
             <h3>{{ t.holder }}</h3>
             <p>{{ passenger_types[t.category].label }} · {{ t.accommodation }}</p>
@@ -49,7 +50,7 @@
     <h2 class="title-3" style="margin-top:2rem">Vehicle tickets</h2>
     <div class="tickets">
         {% for t in vehicles %}
-        <article class="ticket ticket--vehicle">
+        <article class="ticket ticket--vehicle" style="--i: {{ loop.index0 + passengers|length + 2 }}">
             <div class="ticket-top"><span><i class="fa-solid {{ vehicle_icons.get(t.category, 'fa-car') }}" aria-hidden="true"></i> {{ t.category }}</span><code>{{ tx.reference }}-{{ '%02d' % t.seq }}</code></div>
             <h3>{{ t.holder }}</h3>
             <p>{{ t.cargo or 'No cargo declared' }}</p>

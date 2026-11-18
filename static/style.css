@@ -225,10 +225,15 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 .hero {
     position: relative; color: #fff; overflow: hidden;
     padding: clamp(4rem, 10vw, 7.5rem) var(--gutter) clamp(7rem, 12vw, 9.5rem);
+    background: var(--navy-deep);
+}
+/* Photo on its own layer so it can settle in without moving the text. */
+.hero::before {
+    content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, rgba(5, 14, 40, 0.25), rgba(5, 14, 40, 0.65)),
                 url('https://images.pexels.com/photos/36532612/pexels-photo-36532612.jpeg?auto=compress&cs=tinysrgb&w=1600') center/cover;
 }
-.hero-inner { max-width: var(--maxw); margin: 0 auto; }
+.hero-inner { position: relative; max-width: var(--maxw); margin: 0 auto; }
 .hero .eyebrow { color: #9fe6f2; }
 .hero h1 { color: #fff; max-width: 13ch; }
 .hero h1 span { display: block; font-size: 0.42em; line-height: 1.2; letter-spacing: -0.015em; font-weight: 600; color: rgba(255, 255, 255, 0.86); margin-top: 0.6rem; max-width: 22ch; }
@@ -279,7 +284,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
     width: calc((100% - 6px) / var(--count));
     border-radius: 8px; background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
     transform: translateX(calc(100% * var(--index)));
-    transition: transform 320ms var(--ease-out);
+    transition: transform var(--dur-spring) var(--ease-spring);
 }
 .segmented input { position: absolute; opacity: 0; pointer-events: none; }
 .segmented label, .segmented a {
@@ -422,7 +427,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 .choice .choice-main .meter { margin-top: 0.4rem; max-width: 160px; }
 .choice .choice-price { font-weight: 600; font-variant-numeric: tabular-nums; }
 .choice .check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--separator-strong); display: grid; place-items: center; flex: none; transition: background-color 150ms ease, border-color 150ms ease; }
-.choice .check::after { content: ""; width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform 220ms var(--ease-out); }
+.choice .check::after { content: ""; width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform var(--dur-spring-bounce) var(--ease-spring-bounce); }
 .choice input:checked ~ .check { background: var(--primary); border-color: var(--primary); }
 .choice input:checked ~ .check::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
 .choice.disabled { opacity: 0.45; cursor: not-allowed; }
@@ -672,3 +677,116 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
     .ticket, .ticket-hero { box-shadow: none; border: 1px solid #ccc; -webkit-mask: none; mask: none; }
 }
 [data-field=plate]::placeholder { text-transform: none; }
+
+/* =====================================================================
+   Motion
+   Springs (critically damped by default, a little bounce only where the
+   user's action has momentum), entrances that hint where things come
+   from, nothing that loops slowly. All of it is off for reduced motion.
+   ===================================================================== */
+
+:root {
+    /* Fallbacks for browsers without linear() */
+    --ease-spring: cubic-bezier(0.2, 0.9, 0.25, 1);
+    --dur-spring: 600ms;
+    --ease-spring-bounce: cubic-bezier(0.3, 1.3, 0.5, 1);
+    --dur-spring-bounce: 640ms;
+    --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.25, 1);
+    --dur-spring-snappy: 420ms;
+}
+/* Real spring curves sampled from x(t) with response/damping (see README). */
+@supports (transition-timing-function: linear(0, 1)) {
+    :root {
+        --ease-spring: linear(0, 0.04, 0.131, 0.2425, 0.357, 0.4648, 0.5611, 0.6444, 0.7146, 0.7728, 0.8203, 0.8588, 0.8895, 0.9139, 0.9332, 0.9484, 0.9602, 0.9694, 0.9765, 0.982, 0.9863, 0.9895, 0.992, 0.994, 0.9954, 0.9965, 0.9974, 0.998, 1);
+        --dur-spring: 630ms;
+        --ease-spring-bounce: linear(0, 0.0358, 0.1228, 0.2367, 0.3602, 0.4815, 0.5933, 0.6917, 0.775, 0.843, 0.8969, 0.9381, 0.9685, 0.9899, 1.0043, 1.0132, 1.0179, 1.0198, 1.0196, 1.0183, 1.0161, 1.0137, 1.0113, 1.009, 1.0069, 1.0051, 1.0036, 1.0024, 1);
+        --dur-spring-bounce: 640ms;
+        --ease-spring-snappy: linear(0, 0.04, 0.1308, 0.2423, 0.3567, 0.4644, 0.5607, 0.6439, 0.7142, 0.7724, 0.82, 0.8585, 0.8893, 0.9137, 0.933, 0.9482, 0.9601, 0.9693, 0.9764, 0.982, 0.9862, 0.9895, 0.992, 0.9939, 0.9954, 0.9965, 0.9974, 0.998, 1);
+        --dur-spring-snappy: 420ms;
+    }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes rise-sm { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+@keyframes settle { from { transform: scale(1.08); } }
+@keyframes meter-in { from { transform: scaleX(0); } }
+@keyframes enter-from-left { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes enter-from-right { from { opacity: 0; transform: translateX(28px); } }
+@keyframes row-in { from { opacity: 0; transform: translateY(-10px) scale(0.98); } }
+@keyframes row-out { to { opacity: 0; transform: translateX(32px); } }
+@keyframes bump { 35% { transform: scale(1.07); } }
+@keyframes shake { 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } }
+
+@media (prefers-reduced-motion: no-preference) {
+
+    /* Page-to-page: the nav stays put, content cross-fades up. */
+    @view-transition { navigation: auto; }
+    .navbar { view-transition-name: navbar; }
+    ::view-transition-old(root) { animation: 160ms ease both fade-out; }
+    ::view-transition-new(root) { animation: var(--dur-spring-snappy) var(--ease-spring-snappy) both page-in; }
+
+    /* Hero: the photo settles once; the words arrive in reading order. */
+    .hero::before { animation: settle 1.8s var(--ease-out) backwards; }
+    .hero-inner > * { animation: rise var(--dur-spring) var(--ease-spring) backwards; }
+    .hero-inner > :nth-child(2) { animation-delay: 80ms; }
+    .hero-inner > :nth-child(3) { animation-delay: 160ms; }
+    .hero + .search-card { animation: rise var(--dur-spring) var(--ease-spring) 220ms backwards; }
+    .page-head > * { animation: rise var(--dur-spring) var(--ease-spring) backwards; }
+    .page-head > :nth-child(2) { animation-delay: 60ms; }
+    .page-head > :nth-child(3) { animation-delay: 120ms; }
+
+    /* Scroll reveal (only hidden when JS is running to reveal it). */
+    .js [data-reveal] {
+        opacity: 0; transform: translateY(22px);
+        transition: opacity 500ms ease, transform var(--dur-spring) var(--ease-spring);
+        transition-delay: calc(var(--i, 0) * 70ms);
+    }
+    .js [data-reveal].in { opacity: 1; transform: none; }
+
+    /* Lists of results arrive as a quick cascade. */
+    .card-list > *, .dash-grid > .dash-card, .tickets > .ticket {
+        animation: rise-sm var(--dur-spring) var(--ease-spring) backwards;
+        animation-delay: calc(var(--i, 0) * 55ms);
+    }
+    .results-title { animation: rise-sm var(--dur-spring-snappy) var(--ease-spring-snappy) backwards; }
+    .meter.animate::after { animation: meter-in 1s var(--ease-spring) backwards; animation-delay: calc(var(--i, 0) * 55ms + 180ms); }
+
+    /* Tabs slide in from the side you moved toward. */
+    [data-enter="left"] { animation: enter-from-left var(--dur-spring-snappy) var(--ease-spring-snappy); }
+    [data-enter="right"] { animation: enter-from-right var(--dur-spring-snappy) var(--ease-spring-snappy); }
+
+    /* Booking sheet rows come and go where they belong. */
+    .row.entering { animation: row-in var(--dur-spring-snappy) var(--ease-spring-snappy); }
+    .row.leaving { animation: row-out 180ms var(--ease-in) forwards; pointer-events: none; }
+    .bump { animation: bump 360ms var(--ease-spring-bounce); }
+    .shake { animation: shake 420ms ease-out; }
+    .sheet-total strong { display: inline-block; }
+
+    /* Gentle lift on hover for things you can open (mouse only). */
+    @media (hover: hover) and (pointer: fine) {
+        .trip-card, .feature, .dest, .dash-card, .advisory, .port {
+            transition: transform 350ms var(--ease-spring), box-shadow 350ms var(--ease-out);
+        }
+        .trip-card:hover, .feature:hover, .dest:hover, .dash-card:hover, .port:hover {
+            transform: translateY(-2px); box-shadow: var(--shadow-lg);
+        }
+    }
+
+    /* Confirmation: the check draws itself, then the tickets print out. */
+    .confirm-mark circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: draw 650ms var(--ease-out) 150ms forwards; }
+    .confirm-mark path { stroke-dasharray: 36; stroke-dashoffset: 36; animation: draw 380ms var(--ease-out) 650ms forwards; }
+    .confirm-mark { animation: bump 500ms var(--ease-spring-bounce) 650ms; }
+
+    /* Mobile menu drops down from the bar. */
+    .nav-menu.open { animation: rise-sm var(--dur-spring-snappy) var(--ease-spring-snappy); }
+
+    /* Number changes in stats tick rather than jump (JS drives it). */
+    .stat strong { transition: color 300ms ease; }
+}
+
+.confirm-mark { width: 56px; height: 56px; color: var(--green); margin-bottom: 0.75rem; display: block; }
+.confirm-mark circle, .confirm-mark path { fill: none; stroke: currentColor; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) { .dash-grid.quiet > .dash-card { animation: none; } }
+@media print { [data-reveal] { opacity: 1 !important; transform: none !important; } }

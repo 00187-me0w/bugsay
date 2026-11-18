@@ -16,32 +16,71 @@
             var d = new Date(iso + "T00:00:00");
             return d.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
         },
-        meter: function (left, capacity) {
+        // Capsule showing how much is left. animate: fill from empty; i: cascade index.
+        meter: function (left, capacity, animate, i) {
             var pct = capacity ? left / capacity : 0;
             var cls = pct <= 0.2 ? " critical" : pct <= 0.5 ? " low" : "";
-            return '<span class="meter' + cls + '" style="--pct:' + pct.toFixed(3) + '" role="img" aria-label="' +
-                left + " of " + capacity + ' left"></span>';
+            return '<span class="meter' + cls + (animate ? " animate" : "") + '" style="--pct:' + pct.toFixed(3) +
+                (i ? ";--i:" + i : "") + '" role="img" aria-label="' + left + " of " + capacity + ' left"></span>';
         },
-        // Animate a number from its current on-screen value (interruptible).
-        countTo: function (el, to) {
-            var from = parseInt((el.textContent || "0").replace(/[^\d-]/g, ""), 10) || 0;
+        // Tick a number from its current on-screen value to a new one (interruptible).
+        countTo: function (el, to, format, dur) {
+            format = format || U.peso;
+            dur = dur || 380;
+            var from = el._value != null ? el._value : (parseInt((el.textContent || "0").replace(/[^\d-]/g, ""), 10) || 0);
+            el._value = to;
             if (el._raf) cancelAnimationFrame(el._raf);
             clearTimeout(el._settle);
             if (reduceMotion.matches || from === to || document.visibilityState !== "visible") {
-                el.textContent = U.peso(to);
+                el.innerHTML = format(to);
                 return;
             }
-            var start = performance.now(), dur = 380;
+            var start = performance.now();
             // rAF pauses in background tabs; make sure the final value always lands.
-            el._settle = setTimeout(function () { cancelAnimationFrame(el._raf); el.textContent = U.peso(to); }, dur + 100);
+            el._settle = setTimeout(function () { cancelAnimationFrame(el._raf); el.innerHTML = format(to); }, dur + 100);
             (function frame(now) {
                 var t = Math.min((now - start) / dur, 1);
                 var e = 1 - Math.pow(1 - t, 3);
-                el.textContent = U.peso(from + (to - from) * e);
+                el.innerHTML = format(Math.round(from + (to - from) * e));
                 if (t < 1) el._raf = requestAnimationFrame(frame);
             })(start);
-        }
+        },
+        // Restart a one-shot CSS animation class (e.g. "bump", "shake").
+        replay: function (el, cls) {
+            if (!el || reduceMotion.matches) return;
+            el.classList.remove(cls);
+            void el.offsetWidth;
+            el.classList.add(cls);
+            el.addEventListener("animationend", function () { el.classList.remove(cls); }, { once: true });
+        },
+        reduceMotion: reduceMotion
     };
+
+    // ------------------------------------------------------- scroll reveal
+    // Things further down the page rise in as they scroll into view, cascading
+    // within a group. Hidden only when JS runs and motion is allowed.
+    var REVEAL = [".section-head", ".features > *", ".advisories > *", ".destinations > *", ".port-list > *",
+                  ".faq > *", ".campus > *", ".cta", ".map-card", ".stats > *", ".route-tabs", ".ad-slot",
+                  ".ticket-hero", ".checklist", ".summary"];
+    if (!reduceMotion.matches && "IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                var el = entry.target;
+                el.classList.add("in");
+                io.unobserve(el);
+                // Hand transforms back to hover effects once the entrance is done.
+                setTimeout(function () { el.removeAttribute("data-reveal"); el.classList.remove("in"); }, 1400);
+            });
+        }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+        document.querySelectorAll(REVEAL.join(",")).forEach(function (el) {
+            if (el.closest(".hero, .page-head, .sheet")) return;
+            var siblings = el.parentElement ? Array.prototype.indexOf.call(el.parentElement.children, el) : 0;
+            el.style.setProperty("--i", Math.min(siblings, 6));
+            el.setAttribute("data-reveal", "");
+            io.observe(el);
+        });
+    }
 
     // --------------------------------------------------------------- nav
     var navbar = document.querySelector(".navbar");
@@ -79,11 +118,22 @@
             var tab = e.target.closest("[data-tab]");
             if (!tab) return;
             e.preventDefault();
-            tabGroup.querySelectorAll("[data-tab]").forEach(function (t) {
+            var tabs = Array.prototype.slice.call(tabGroup.querySelectorAll("[data-tab]"));
+            var from = tabs.findIndex(function (t) { return t.getAttribute("aria-selected") === "true"; });
+            var to = tabs.indexOf(tab);
+            if (from === to) return;
+            tabs.forEach(function (t) {
                 var active = t === tab;
+                var panel = document.getElementById("panel-" + t.dataset.tab);
                 t.setAttribute("aria-selected", active ? "true" : "false");
                 if (active) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
-                document.getElementById("panel-" + t.dataset.tab).hidden = !active;
+                panel.hidden = !active;
+                // Slide in from the side you moved toward, like paging.
+                if (active) {
+                    panel.removeAttribute("data-enter");
+                    void panel.offsetWidth;
+                    panel.setAttribute("data-enter", to > from ? "right" : "left");
+                }
             });
             syncSegment(tabGroup);
         });

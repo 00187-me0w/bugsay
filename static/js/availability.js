@@ -10,29 +10,35 @@
     var REFRESH_MS = 30000;
     var timer = 0, inflight = null;
 
-    function stat(name, html) { document.querySelector('[data-stat="' + name + '"]').innerHTML = html; }
+    // Stats tick from their current value to the new one.
+    function stat(name, value, suffix) {
+        U.countTo(document.querySelector('[data-stat="' + name + '"]'), value, function (n) { return n + (suffix || ""); }, 700);
+    }
 
-    function row(label, icon, left, capacity, price) {
+    var animateNext = true;   // cascade on first load / filter change, not on background refresh
+
+    function row(label, icon, left, capacity, price, i) {
         return '<div class="dash-row"><span class="name">' + (icon ? '<i class="fa-solid ' + icon + '" aria-hidden="true"></i> ' : "") +
-            esc(label) + ' <span class="caption">' + peso(price) + "</span></span>" + U.meter(left, capacity) +
+            esc(label) + ' <span class="caption">' + peso(price) + "</span></span>" + U.meter(left, capacity, animateNext, i) +
             '<span class="count">' + left + "<small>/" + capacity + "</small></span></div>";
     }
 
-    function card(s) {
+    function card(s, i) {
         var a = s.availability, st = a.status;
         var link = "/" + (a.seats.length ? "schedules" : "vehicle") + "?" + new URLSearchParams({
             origin: s.origin, destination: s.destination, date: form.elements.date.value
         });
-        return '<article class="dash-card' + (st.bookable ? "" : " is-cancelled") + '">' +
+        var r = function (x, icon) { return row(x.type, icon, x.left, x.capacity, x.price, Math.min(i, 8)); };
+        return '<article class="dash-card' + (st.bookable ? "" : " is-cancelled") + '" style="--i:' + Math.min(i, 8) + '">' +
             "<header><div><h3>" + esc(s.origin_name) + " → " + esc(s.destination_name) + "</h3><p>" + esc(s.company) +
             (s.vessel ? " · " + esc(s.vessel) : "") + " · " + esc(s.kind) + "</p></div>" +
             '<span class="pill pill--' + esc(st.status) + '">' + esc(st.label) + "</span></header>" +
             '<div class="dash-time">' + esc(s.depart_label) + ' <small>→ ' + esc(s.arrive_label) + (s.next_day ? " (+1)" : "") + "</small></div>" +
             (st.note ? '<p class="footnote" style="color:var(--red)">' + esc(st.note) + "</p>" : "") +
             '<div class="dash-rows"><span class="dash-sub">Seats</span>' +
-            a.seats.map(function (x) { return row(x.type, null, x.left, x.capacity, x.price); }).join("") + "</div>" +
+            a.seats.map(function (x) { return r(x, null); }).join("") + "</div>" +
             (a.vehicles.length ? '<div class="dash-rows"><span class="dash-sub">Vehicle deck</span>' +
-                a.vehicles.map(function (x) { return row(x.type, icons[x.type], x.left, x.capacity, x.price); }).join("") + "</div>" : "") +
+                a.vehicles.map(function (x) { return r(x, icons[x.type]); }).join("") + "</div>" : "") +
             "<footer><span class=\"footnote tabular\">" + a.seats_left + " of " + a.seats_total + " seats left</span>" +
             (st.bookable && a.seats_left ? '<a class="btn btn-secondary" style="min-height:34px" href="' + link + '">Book</a>' : "") +
             "</footer></article>";
@@ -48,11 +54,13 @@
             .then(function (body) {
                 var t = body.totals;
                 stat("sailings", t.sailings);
-                stat("seats", t.seats_left + "<small> / " + t.seats_total + "</small>");
-                stat("fill", (t.seats_total ? Math.round((1 - t.seats_left / t.seats_total) * 100) : 0) + "<small>%</small>");
+                stat("seats", t.seats_left, "<small> / " + t.seats_total + "</small>");
+                stat("fill", t.seats_total ? Math.round((1 - t.seats_left / t.seats_total) * 100) : 0, "<small>%</small>");
                 stat("cancelled", t.cancelled);
+                grid.classList.toggle("quiet", !animateNext);
                 grid.innerHTML = body.sailings.length ? body.sailings.map(card).join("")
                     : '<div class="results-note" style="grid-column:1/-1">No sailings match on ' + esc(U.prettyDate(body.date)) + ".</div>";
+                animateNext = false;
                 var time = new Date(body.generated_at).toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" });
                 updated.textContent = "Live · updated " + time;
             })
@@ -69,7 +77,7 @@
         }, REFRESH_MS);
     }
 
-    form.addEventListener("change", function () { load(); schedule(); });
+    form.addEventListener("change", function () { animateNext = true; load(); schedule(); });
     document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible") { load(); schedule(); }
     });

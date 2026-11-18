@@ -47,18 +47,18 @@
 
     function plainChip(x) { return '<span class="chip">' + esc(x.type) + " " + peso(x.price) + "</span>"; }
 
-    function seatChip(s) {
+    function seatChip(s, i) {
         return '<span class="chip' + (s.left ? "" : " chip--sold") + '">' + esc(s.type) + " " + peso(s.price) +
-            ' · <b>' + (s.left ? s.left + " left" : "Sold out") + "</b>" + U.meter(s.left, s.capacity) + "</span>";
+            ' · <b>' + (s.left ? s.left + " left" : "Sold out") + "</b>" + U.meter(s.left, s.capacity, true, i) + "</span>";
     }
 
-    function vehicleChip(v) {
+    function vehicleChip(v, i) {
         return '<span class="chip' + (v.left ? "" : " chip--sold") + '"><i class="fa-solid ' + (cfg.vehicleIcons[v.type] || "fa-car") +
             '" aria-hidden="true"></i> ' + esc(v.type) + " " + peso(v.price) + ' · <b>' + (v.left ? v.left + " slots" : "Full") +
-            "</b>" + U.meter(v.left, v.capacity) + "</span>";
+            "</b>" + U.meter(v.left, v.capacity, true, i) + "</span>";
     }
 
-    function card(trip, date, wanted) {
+    function card(trip, date, wanted, i) {
         var key = trip.id + "|" + date;
         tripsByKey[key] = { trip: trip, date: date };
         var a = trip.availability;
@@ -71,13 +71,13 @@
             price = Math.min.apply(null, (open.length ? open : vs).map(function (v) { return v.price; }));
             priceLabel = wanted.vehicleType ? wanted.vehicleType + " rate" : "Vehicles from";
             canBook = status.bookable && open.length > 0;
-            foot = a.vehicles.map(vehicleChip).join("");
+            foot = a.vehicles.map(function (x) { return vehicleChip(x, i); }).join("");
         } else {
             var openSeats = a.seats.filter(function (s) { return s.left >= wanted.passengers; });
             price = (openSeats[0] || a.seats[0]).price;
             priceLabel = wanted.passengers > 1 ? "From, per person" : "From";
             canBook = status.bookable && openSeats.length > 0;
-            foot = a.seats.map(seatChip).join("");
+            foot = a.seats.map(function (x) { return seatChip(x, i); }).join("");
             if (trip.carries_vehicles) foot += '<span class="chip"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Takes vehicles</span>';
         }
         if (!status.bookable) foot = (vehicleMode ? a.vehicles : a.seats).map(plainChip).join("");
@@ -85,7 +85,7 @@
             : (wanted.vehicleType && !a.vehicles.some(function (x) { return x.type === wanted.vehicleType; })) ? "No " + wanted.vehicleType : "Full";
 
         return '' +
-            '<article class="trip-card' + (status.bookable ? "" : " is-cancelled") + '">' +
+            '<article class="trip-card' + (status.bookable ? "" : " is-cancelled") + '" style="--i:' + i + '">' +
             '  <div class="carrier">' +
             '    <span class="carrier-icon"><i class="fa-solid ' + (trip.kind === "Fast craft" ? "fa-bolt" : "fa-ship") + '" aria-hidden="true"></i></span>' +
             '    <div><h3>' + esc(trip.company) + '</h3><p>' + esc(trip.kind) + (trip.vessel ? " · " + esc(trip.vessel) : "") +
@@ -111,7 +111,7 @@
     function legHtml(title, body, wanted) {
         var html = '<div class="results-title"><h2>' + esc(title) + '</h2><span>' + esc(U.prettyDate(body.date)) + "</span></div>";
         if (body.trips.length) {
-            html += '<div class="card-list">' + body.trips.map(function (t) { return card(t, body.date, wanted); }).join("") + "</div>";
+            html += '<div class="card-list">' + body.trips.map(function (t, i) { return card(t, body.date, wanted, i); }).join("") + "</div>";
         } else if (body.other_days.length) {
             html += '<div class="results-note">No ' + (vehicleMode ? "vehicle-carrying " : "") + "sailings on this day. This route runs on other days:" +
                 '<ul class="other-days">' + body.other_days.map(function (t) {
@@ -264,6 +264,7 @@
         summary.innerHTML = q.lines.length ? q.lines.map(function (l) {
             return '<div class="line ' + (l[2] || "") + '"><span>' + esc(l[0]) + "</span><span>" + (l[1] < 0 ? "−" + peso(-l[1]) : peso(l[1])) + "</span></div>";
         }).join("") : '<div class="line muted"><span>Add a passenger or vehicle</span><span></span></div>';
+        if (totalEl._value != null && totalEl._value !== q.total && dialog.open) U.replay(totalEl, "bump");
         U.countTo(totalEl, q.total);
         var count = state.passengers.length + state.vehicles.length;
         submitBtn.disabled = count === 0;
@@ -293,6 +294,7 @@
         dialog.querySelector("[data-sheet-sub]").textContent = trip.company + " · " + trip.origin_name + " → " + trip.destination_name +
             " · " + U.prettyDate(entry.date) + ", " + trip.depart_label;
         errorEl.hidden = true;
+        totalEl._value = null;
         renderAll();
         sheet.open();
         var firstInput = dialog.querySelector("[data-pax] input, [data-veh] input");
@@ -332,8 +334,10 @@
             if (s) state.fareClass = s.type;
         }
         renderAll();
+        paxList.lastElementChild.classList.add("entering");
         var inputs = paxList.querySelectorAll("input");
-        inputs[inputs.length - 1].focus();
+        inputs[inputs.length - 1].focus({ preventScroll: true });
+        paxList.lastElementChild.scrollIntoView({ block: "nearest", behavior: U.reduceMotion.matches ? "auto" : "smooth" });
     });
 
     addVeh.addEventListener("click", function () {
@@ -341,15 +345,28 @@
         if (!t) return;
         state.vehicles.push({ type: t.type, plate: "", cargo: "" });
         renderVeh(); renderSummary();
+        vehList.lastElementChild.classList.add("entering");
         var rows = vehList.querySelectorAll("[data-field=plate]");
-        rows[rows.length - 1].focus();
+        rows[rows.length - 1].focus({ preventScroll: true });
+        vehList.lastElementChild.scrollIntoView({ block: "nearest", behavior: U.reduceMotion.matches ? "auto" : "smooth" });
     });
+
+    // Removing a row: let it slide out first, then update the list.
+    function removeRow(row, done) {
+        if (U.reduceMotion.matches || row.classList.contains("leaving")) { done(); return; }
+        row.classList.add("leaving");
+        setTimeout(done, 170);
+    }
 
     dialog.addEventListener("click", function (e) {
         var rp = e.target.closest("[data-remove-pax]");
         var rv = e.target.closest("[data-remove-veh]");
-        if (rp) { state.passengers.splice(parseInt(rp.dataset.removePax, 10), 1); renderAll(); }
-        if (rv) { state.vehicles.splice(parseInt(rv.dataset.removeVeh, 10), 1); renderVeh(); renderSummary(); }
+        if (rp) removeRow(rp.closest(".row"), function () {
+            state.passengers.splice(parseInt(rp.dataset.removePax, 10), 1); renderAll();
+        });
+        if (rv) removeRow(rv.closest(".row"), function () {
+            state.vehicles.splice(parseInt(rv.dataset.removeVeh, 10), 1); renderVeh(); renderSummary();
+        });
     });
 
     function showErrors(errors) {
@@ -364,6 +381,9 @@
         });
         errorEl.textContent = messages.join(" ");
         errorEl.hidden = false;
+        // A short shake says "not quite" without a modal alert.
+        dialog.querySelectorAll(".row.invalid").forEach(function (r) { U.replay(r, "shake"); });
+        U.replay(errorEl, "shake");
         var bad = dialog.querySelector(".invalid input") || errorEl;
         bad.scrollIntoView({ block: "center", behavior: "smooth" });
         if (bad.focus) bad.focus({ preventScroll: true });
