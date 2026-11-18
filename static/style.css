@@ -1,12 +1,13 @@
 /* =====================================================================
    Bugsay design system
    Apple-style: system type, translucent chrome, grouped surfaces,
-   instant press feedback, spring-like motion, light + dark.
+   instant press feedback, spring-like motion. Light mode only.
+   Text colors meet WCAG AA (4.5:1) on every surface they sit on.
    Palette taken from the logo (navy pin, teal ship, bright blue ring).
    ===================================================================== */
 
 :root {
-    color-scheme: light;
+    color-scheme: light only;  /* also stops browsers auto-darkening the page */
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI",
             Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display",
@@ -18,24 +19,24 @@
     --surface-2: #f2f3f6;
     --surface-3: #e8eaef;
     --text: #1d1d1f;
-    --text-2: #5f6168;
-    --text-3: #86868b;
+    --text-2: #55575e;
+    --text-3: #6a6b71;
     --separator: rgba(60, 60, 67, 0.14);
     --separator-strong: rgba(60, 60, 67, 0.26);
 
     --navy: #10307a;
     --navy-deep: #0b1f4f;
-    --teal: #0093ad;
-    --primary: #0a63d1;
-    --primary-hover: #0954b3;
-    --primary-soft: rgba(10, 99, 209, 0.10);
+    --teal: #00788c;
+    --primary: #0a5fc9;
+    --primary-hover: #0850a9;
+    --primary-soft: rgba(10, 95, 201, 0.10);
     --on-primary: #ffffff;
 
-    --green: #1a8f4c;
+    --green: #137a40;
     --green-soft: rgba(26, 143, 76, 0.12);
-    --orange: #b35c00;
+    --orange: #9e5000;
     --orange-soft: rgba(230, 126, 0, 0.14);
-    --red: #d1242f;
+    --red: #c21d29;
     --red-soft: rgba(209, 36, 47, 0.11);
 
     --chrome: rgba(255, 255, 255, 0.72);
@@ -55,37 +56,6 @@
     --press: 100ms;
     --gutter: max(20px, 5vw);
     --maxw: 1120px;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        color-scheme: dark;
-        --bg: #000000;
-        --surface: #1c1c1e;
-        --surface-2: #2c2c2e;
-        --surface-3: #3a3a3c;
-        --text: #f5f5f7;
-        --text-2: #aeaeb2;
-        --text-3: #8e8e93;
-        --separator: rgba(84, 84, 88, 0.55);
-        --separator-strong: rgba(120, 120, 128, 0.6);
-        --navy: #7fa7ff;
-        --navy-deep: #0a1430;
-        --teal: #3cc8e0;
-        --primary: #3f93ff;
-        --primary-hover: #66a9ff;
-        --primary-soft: rgba(63, 147, 255, 0.16);
-        --green: #34c46a;
-        --green-soft: rgba(52, 196, 106, 0.16);
-        --orange: #ffa53a;
-        --orange-soft: rgba(255, 165, 58, 0.16);
-        --red: #ff5a5f;
-        --red-soft: rgba(255, 90, 95, 0.16);
-        --chrome: rgba(22, 22, 24, 0.72);
-        --scrim: rgba(0, 0, 0, 0.55);
-        --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
-        --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 24px 60px rgba(0, 0, 0, 0.6);
-    }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -252,12 +222,13 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 .field {
     flex: 1; min-width: 0; position: relative;
     background: var(--surface-2); border-radius: var(--r-md); padding: 0.55rem 0.9rem 0.6rem;
+    box-shadow: inset 0 0 0 1px var(--separator);
     transition: background-color 150ms ease, box-shadow 150ms ease;
 }
 .field:focus-within { background: var(--surface); box-shadow: 0 0 0 2px var(--primary); }
 .field label { display: block; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
 .field select, .field input { width: 100%; border: 0; background: transparent; outline: none; font-size: 1rem; font-weight: 500; color: var(--text); padding: 0.1rem 0; cursor: pointer; appearance: none; -webkit-appearance: none; }
-.field select { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right center no-repeat; padding-right: 1rem; }
+.field select { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236a6b71' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right center no-repeat; padding-right: 1rem; }
 .field[hidden] { display: none; }
 .field--sm { flex: 0.75; }
 .swap-btn { align-self: center; flex: none; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--primary); display: grid; place-items: center; transition: transform 300ms var(--ease-out), background-color 150ms; }
@@ -294,7 +265,6 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 }
 .segmented input:checked + label, .segmented a[aria-current="page"] { color: var(--text); font-weight: 600; }
 .segmented input:focus-visible + label { outline: 2px solid var(--primary); }
-@media (prefers-color-scheme: dark) { .segmented { background: #1c1c1e; } .segmented::before { background: #636366; } }
 
 /* ----------------------------------------------------------- features */
 
@@ -402,7 +372,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 .row input[type=text], .row input[type=email], .row select {
     flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 1rem; padding: 0.35rem 0; color: var(--text);
 }
-.row select { flex: none; width: auto; max-width: 48%; text-align: right; color: var(--text-2); cursor: pointer; appearance: none; -webkit-appearance: none; padding-right: 1rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right center no-repeat; }
+.row select { flex: none; width: auto; max-width: 48%; text-align: right; color: var(--text-2); cursor: pointer; appearance: none; -webkit-appearance: none; padding-right: 1rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236a6b71' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right center no-repeat; }
 .row .remove { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--red); color: #fff; font-size: 0.7rem; display: grid; place-items: center; transition: transform var(--press) ease-out; }
 .row .remove:active { transform: scale(0.88); }
 .row.invalid input { color: var(--red); }
@@ -580,7 +550,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 
 .cta { background: linear-gradient(135deg, var(--navy-deep), #123a8f 60%, #0b6f86); color: #fff; border-radius: var(--r-xl); padding: clamp(2rem, 5vw, 3.5rem); display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
 .cta h2 { color: #fff; }
-.cta p { color: rgba(255, 255, 255, 0.8); margin-top: 0.5rem; }
+.cta p { color: rgba(255, 255, 255, 0.9); margin-top: 0.5rem; }
 .cta .eyebrow { color: #9fe6f2; }
 
 .lookup { display: flex; gap: 0.5rem; margin-top: 1.5rem; max-width: 480px; }
@@ -599,8 +569,8 @@ h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 600; color: 
 .footer-brand { display: flex; align-items: center; gap: 0.6rem; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.05em; font-size: 1.125rem; color: #fff; }
 .footer-brand img { width: 36px; height: 36px; background: #fff; border-radius: 10px; padding: 2px; }
 .footer-tagline { margin-top: 0.75rem; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.7); }
-.footer-note { margin-top: 1rem; font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); max-width: 340px; }
-.footer h4 { color: rgba(255, 255, 255, 0.55); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.9rem; }
+.footer-note { margin-top: 1rem; font-size: 0.75rem; color: rgba(255, 255, 255, 0.62); max-width: 340px; }
+.footer h4 { color: rgba(255, 255, 255, 0.62); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.9rem; }
 .footer ul { list-style: none; display: grid; gap: 0.6rem; font-size: 0.875rem; }
 .footer a:hover { color: #fff; text-decoration: underline; }
 .footer-bottom { max-width: var(--maxw); margin: 2.5rem auto 0; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); }
