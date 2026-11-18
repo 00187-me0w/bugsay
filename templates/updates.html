@@ -2,20 +2,19 @@
 {% block title %}Travel Updates{% endblock %}
 
 {% block content %}
-<div class="section-header page-top">
-    <p class="section-label">Before you leave</p>
-    <h2 class="section-title">Port &amp; travel updates</h2>
-    <p class="section-subtitle">Weather cancellations, schedule changes and terminal announcements.</p>
+<div class="wrap page-head">
+    <p class="eyebrow">Before you leave</p>
+    <h1 class="title-1">Port &amp; travel updates</h1>
+    <p class="subhead">Weather suspensions, schedule changes and terminal announcements. Cancelled sailings are also marked on <a class="prose-link" href="{{ url_for('availability') }}">Availability</a> and can't be booked.</p>
 </div>
 
-<div class="notice notice--warn page-notice">
-    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-    <div>The advisories below are <strong>examples</strong> of what Bugsay will show. For real-time
-        sailing status, check the Philippine Coast Guard's official advisories and your carrier's
-        own announcements before leaving for the port.</div>
+<div class="wrap section">
+    <div class="notice notice--warn" style="margin-bottom:1.25rem">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <div>Prototype: these advisories are sample content. For real-time sailing status, check the Philippine Coast Guard's advisories and your carrier's announcements before leaving for the port.</div>
+    </div>
+    <div class="advisories">
+        {% for a in advisories %}{% include "_advisory.html" %}{% endfor %}
+    </div>
 </div>
-
-<section class="advisories-grid">
-    {% for a in advisories %}{% include "_advisory.html" %}{% endfor %}
-</section>
 {% endblock %}

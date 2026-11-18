@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Ferry Schedules{% endblock %} | Bugsay</title>
-    <meta name="description" content="{% block description %}Find ferry schedules, compare fares and plan your crossing between Cebu, Leyte and Bohol.{% endblock %}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <meta name="description" content="{% block description %}Your one-stop Visayas sea travel companion: ferry schedules, live seat availability and bookings between Cebu, Leyte and Bohol.{% endblock %}">
+    <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block head %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -17,8 +17,11 @@
     <a class="skip-link" href="#main">Skip to content</a>
 
     <nav class="navbar" aria-label="Main">
-        <a href="{{ url_for('home') }}" class="nav-brand"><i class="fa-solid fa-ship" aria-hidden="true"></i> bugsay</a>
-        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+        <a href="{{ url_for('home') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="" width="36" height="36">
+            <span>BUGSAY</span>
+        </a>
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
             <i class="fa-solid fa-bars" aria-hidden="true"></i><span class="sr-only">Menu</span>
         </button>
         <div class="nav-menu" id="nav-menu">
@@ -28,8 +31,8 @@
                 {% endfor %}
             </ul>
             <div class="nav-actions">
-                <a href="{{ url_for('booking_lookup') }}"{% if request.endpoint in ('booking_lookup', 'booking_detail') %} class="active"{% endif %}><i class="fa-regular fa-id-card" aria-hidden="true"></i> My trip</a>
-                <a href="{{ url_for('schedules') }}" class="btn-primary">Find a ferry <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></a>
+                <a href="{{ url_for('booking_lookup') }}" class="nav-trip{% if request.endpoint in ('booking_lookup', 'booking_detail') %} active{% endif %}"><i class="fa-regular fa-id-card" aria-hidden="true"></i> My trip</a>
+                <a href="{{ url_for('schedules') }}" class="btn btn-primary">Find a ferry</a>
             </div>
         </div>
     </nav>
@@ -41,27 +44,28 @@
     <footer class="footer">
         <div class="footer-grid">
             <div>
-                <h3 class="footer-brand"><i class="fa-solid fa-ship" aria-hidden="true"></i> bugsay</h3>
+                <div class="footer-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="" width="36" height="36"> BUGSAY</div>
                 <p class="footer-tagline">Bringing the Visayas a little closer.</p>
-                <p class="footer-note">Bugsay is a prototype. Schedules and fares are for reference only and may be out of date. Always confirm with the carrier before you travel.</p>
+                <p class="footer-note">Bugsay is a prototype. Schedules, fares and seat counts are for reference and may be out of date; no real payments are taken. Confirm with the carrier before you travel.</p>
             </div>
-            <div class="footer-col">
+            <div>
                 <h4>Plan your trip</h4>
                 <ul>
                     <li><a href="{{ url_for('schedules') }}">Ferry schedules</a></li>
-                    <li><a href="{{ url_for('route_map') }}">Port map</a></li>
-                    <li><a href="{{ url_for('updates') }}">Travel updates</a></li>
+                    <li><a href="{{ url_for('availability') }}">Seat availability</a></li>
+                    <li><a href="{{ url_for('vehicle') }}">Vehicle booking</a></li>
                     <li><a href="{{ url_for('booking_lookup') }}">Find my trip</a></li>
                 </ul>
             </div>
-            <div class="footer-col">
+            <div>
                 <h4>Discover</h4>
                 <ul>
+                    <li><a href="{{ url_for('route_map') }}">Port map</a></li>
+                    <li><a href="{{ url_for('updates') }}">Travel updates</a></li>
                     <li><a href="{{ url_for('tourism') }}">Explore the Visayas</a></li>
-                    <li><a href="{{ url_for('rewards') }}">Bugsay Rewards</a></li>
                 </ul>
             </div>
-            <div class="footer-col">
+            <div>
                 <h4>Here to help</h4>
                 <ul>
                     <li><a href="{{ url_for('faq') }}">Help &amp; FAQ</a></li>
@@ -71,7 +75,7 @@
         </div>
         <div class="footer-bottom">
             <span>&copy; {{ today.year }} Bugsay. All rights reserved.</span>
-            <a href="{{ url_for('schedules') }}">See you on the water. ↗</a>
+            <a href="{{ url_for('schedules') }}">See you on the water ↗</a>
         </div>
     </footer>
 

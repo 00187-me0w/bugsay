@@ -1,69 +1,113 @@
 {% extends "base.html" %}
-{% block title %}Schedules &amp; Fares{% endblock %}
+{% block title %}{{ 'Vehicle Booking' if mode == 'vehicle' else 'Schedules & Fares' }}{% endblock %}
 
 {% block content %}
-<div class="section-header page-top">
-    <p class="section-label">Find your crossing</p>
-    <h2 class="section-title">Schedules &amp; fares</h2>
-    <p class="section-subtitle">Pick your ports and date to see which sailings run that day.</p>
+<div class="wrap page-head">
+    {% if mode == 'vehicle' %}
+    <p class="eyebrow">RoRo &amp; freight</p>
+    <h1 class="title-1">Vehicle booking</h1>
+    <p class="subhead">Rates and open deck slots for motorcycles, cars, SUVs, trucks and buses. Add the driver and passengers to the same booking.</p>
+    {% else %}
+    <p class="eyebrow">Find your crossing</p>
+    <h1 class="title-1">Schedules &amp; fares</h1>
+    <p class="subhead">Pick your ports and date to see which sailings run that day and how many seats are left.</p>
+    {% endif %}
 </div>
 
-{% with compact=True %}{% include "_search_form.html" %}{% endwith %}
+<div class="wrap">
+    {% with compact=True %}{% include "_search_form.html" %}{% endwith %}
+</div>
 
-<section class="schedules" id="results" aria-live="polite">
+<section class="wrap section" id="results" aria-live="polite">
     <div class="results-empty" data-results-placeholder>
-        <i class="fa-solid fa-water" aria-hidden="true"></i>
-        <p>Choose where you're sailing from and to, then press <strong>Search ferries</strong>.</p>
+        <i class="fa-solid {{ 'fa-truck-ramp-box' if mode == 'vehicle' else 'fa-water' }}" aria-hidden="true"></i>
+        <p>Choose where you're sailing from and to, then press <strong>Search</strong>.</p>
     </div>
 </section>
 
-<dialog class="modal" id="reserve-dialog" aria-labelledby="reserve-title">
-    <form method="dialog" class="modal-close-form">
-        <button class="modal-close" value="cancel" aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-    </form>
-    <h3 id="reserve-title"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Save this trip</h3>
-    <div class="reserve-summary" data-reserve-summary></div>
-
-    <form id="reserve-form" novalidate>
-        <div class="form-row">
-            <label for="r-fare">Accommodation</label>
-            <select id="r-fare" name="fare_class" required></select>
+<dialog class="sheet" id="book-sheet" aria-labelledby="sheet-title">
+    <div class="sheet-grabber" data-grabber aria-hidden="true"></div>
+    <div class="sheet-head" data-drag-handle>
+        <div>
+            <h2 id="sheet-title">Book this sailing</h2>
+            <p data-sheet-sub></p>
         </div>
-        <div class="form-grid">
-            <div class="form-row">
-                <label for="r-passengers">Passengers</label>
-                <select id="r-passengers" name="passengers">
-                    {% for n in range(1, max_passengers + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
-                </select>
+        <button type="button" class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+
+    <form id="book-form" class="sheet-body" novalidate>
+        <div class="group" data-acc-group>
+            <div class="group-title"><b>Accommodation</b><span data-acc-note></span></div>
+            <div class="group-list" data-acc-list role="radiogroup" aria-label="Accommodation"></div>
+        </div>
+
+        <div class="group">
+            <div class="group-title"><b>Passengers</b><span data-pax-note></span></div>
+            <div class="group-list">
+                <div data-pax-list></div>
+                <button type="button" class="row row-add" data-add-pax><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Add passenger</button>
             </div>
-            <div class="form-row">
-                <label for="r-discounted">Student / senior / PWD</label>
-                <select id="r-discounted" name="discounted"></select>
+            <p class="group-foot">Student, senior citizen and PWD fares are {{ discount_pct }}% off. Bring a valid ID; the carrier checks it at the port.</p>
+        </div>
+
+        <div class="group" data-veh-group>
+            <div class="group-title"><b>Vehicles</b><span data-veh-note></span></div>
+            <div class="group-list">
+                <div data-veh-list></div>
+                <button type="button" class="row row-add" data-add-veh><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Add vehicle</button>
+            </div>
+            <p class="group-foot">Travelling with your vehicle? Add yourself as a passenger too.</p>
+        </div>
+
+        <div class="group">
+            <div class="group-title"><b>Contact</b></div>
+            <div class="group-list">
+                <label class="row"><i class="lead fa-solid fa-envelope" aria-hidden="true"></i>
+                    <span class="sr-only">Email address</span>
+                    <input type="email" name="email" autocomplete="email" required maxlength="254" placeholder="Email for your tickets">
+                </label>
             </div>
         </div>
-        <div class="form-row">
-            <label for="r-name">Lead passenger's full name</label>
-            <input type="text" id="r-name" name="name" autocomplete="name" required maxlength="100" placeholder="Juan Dela Cruz">
-        </div>
-        <div class="form-row">
-            <label for="r-email">Email address</label>
-            <input type="email" id="r-email" name="email" autocomplete="email" required maxlength="254" placeholder="juan@example.com">
-        </div>
-        <p class="form-error" data-form-error hidden></p>
 
-        <div class="reserve-total">
-            <span>Estimated total</span>
-            <strong data-total>₱0</strong>
+        <div class="group">
+            <div class="group-title"><b>Payment</b></div>
+            <div class="pay-grid" role="radiogroup" aria-label="Payment method">
+                {% for key, m in payment_methods.items() %}
+                <label class="pay-tile"><input type="radio" name="payment_method" value="{{ key }}"{% if loop.first %} checked{% endif %}>
+                    <i class="fa-solid {{ m.icon }}" aria-hidden="true"></i> {{ m.label }}</label>
+                {% endfor %}
+            </div>
+            <p class="group-foot">Prototype: online payment is simulated. Nothing is charged and no card or e-wallet details are asked for.</p>
         </div>
-        <p class="hint">Discounted passengers ({{ discount_pct }}% off) must show a valid school, senior citizen or PWD ID at the counter.
-            <strong>No payment is taken online</strong>—you pay the carrier when you buy your ticket at the port.</p>
 
-        <button type="submit" class="btn-primary btn-block"><i class="fa-regular fa-floppy-disk" aria-hidden="true"></i> Save trip plan</button>
+        <div class="group">
+            <div class="group-title"><b>Summary</b></div>
+            <div class="group-list summary" data-summary></div>
+        </div>
+
+        <p class="form-error" data-form-error role="alert" hidden></p>
     </form>
+
+    <div class="sheet-foot">
+        <div class="sheet-total"><span data-total-label>Total</span><strong data-total>₱0</strong></div>
+        <button type="submit" form="book-form" class="btn btn-primary btn-lg btn-block" data-submit>Confirm booking</button>
+    </div>
 </dialog>
 {% endblock %}
 
 {% block scripts %}
-<script>window.BUGSAY = { discountRate: {{ (discount_pct / 100) | tojson }} };</script>
+<script>
+window.BUGSAY = {{ {
+    'mode': mode,
+    'discountRate': discount_pct / 100,
+    'feeTicket': fee_ticket,
+    'feeVehicle': fee_vehicle,
+    'maxPassengers': max_passengers,
+    'maxVehicles': max_vehicles,
+    'passengerTypes': passenger_types,
+    'vehicleIcons': vehicle_icons,
+} | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/sheet.js') }}"></script>
 <script src="{{ url_for('static', filename='js/schedules.js') }}"></script>
 {% endblock %}
