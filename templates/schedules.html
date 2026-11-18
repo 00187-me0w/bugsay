@@ -1,481 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bugsay | Schedules & Fares</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="nav-brand">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 40px; width: auto; object-fit: contain;">
-            <span>BUGSAY</span>
-        </a>
-        <ul class="nav-links">
-            <li><a href="/schedules" style="color: var(--primary);">Schedules</a></li>
-            <li><a href="/map">Port map</a></li>
-            <li><a href="/updates">Travel updates</a></li>
-            <li><a href="/tourism">Explore Visayas</a></li>
-            <li><a href="/vehicle">Vehicle Booking</a></li>
-        </ul>
-        <div class="nav-actions">
-            <a href="#" onclick="alert('Student Login coming soon!')">Sign in</a>
-            <a href="/schedules" class="btn-primary" style="text-decoration: none;">Find a ferry <i class="fa-solid fa-magnifying-glass" style="margin-left:5px;"></i></a>
-        </div>
-    </nav>
+{% extends "base.html" %}
+{% block title %}{{ 'Vehicle Booking' if mode == 'vehicle' else 'Schedules & Fares' }}{% endblock %}
 
-    <div class="section-header" style="margin-top: 4rem;">
-        <p class="section-label">Find Your Crossing</p>
-        <h2 class="section-title">Live Schedules & Fares</h2>
+{% block content %}
+<div class="wrap page-head">
+    {% if mode == 'vehicle' %}
+    <p class="eyebrow">RoRo &amp; freight</p>
+    <h1 class="title-1">Vehicle booking</h1>
+    <p class="subhead">Rates and open deck slots for motorcycles, cars, SUVs, trucks and buses. Add the driver and passengers to the same booking.</p>
+    {% else %}
+    <p class="eyebrow">Find your crossing</p>
+    <h1 class="title-1">Schedules &amp; fares</h1>
+    <p class="subhead">Pick your ports and date to see which sailings run that day and how many seats are left.</p>
+    {% endif %}
+</div>
+
+<div class="wrap">
+    {% with compact=True %}{% include "_search_form.html" %}{% endwith %}
+</div>
+
+<section class="wrap section" id="results" aria-live="polite">
+    <div class="results-empty" data-results-placeholder>
+        <i class="fa-solid {{ 'fa-truck-ramp-box' if mode == 'vehicle' else 'fa-water' }}" aria-hidden="true"></i>
+        <p>Choose where you're sailing from and to, then press <strong>Search</strong>.</p>
+    </div>
+</section>
+
+<dialog class="sheet" id="book-sheet" aria-labelledby="sheet-title">
+    <div class="sheet-grabber" data-grabber aria-hidden="true"></div>
+    <div class="sheet-head" data-drag-handle>
+        <div>
+            <h2 id="sheet-title">Book this sailing</h2>
+            <p data-sheet-sub></p>
+        </div>
+        <button type="button" class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
 
-    <div class="search-widget" style="margin-top: 2rem;">
-        <div class="search-grid">
-            <div class="search-field">
-                <label>From</label>
-                <select id="origin">
-                    <option value="Cebu City" selected>⚓ Cebu City</option>
-                    <option value="Hilongos">⚓ Hilongos</option>
-                    <option value="Baybay City">⚓ Baybay City</option>
-                    <option value="Ormoc City">⚓ Ormoc City</option>
-                    <option value="Bato">⚓ Bato</option>
-                    <option value="Ubay">⚓ Ubay</option>
-                </select>
-            </div>
-            <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--primary);"></i>
-            <div class="search-field">
-                <label>To</label>
-                <select id="destination">
-                    <option value="Baybay City">◎ Baybay City</option>
-                    <option value="Hilongos" selected>◎ Hilongos</option>
-                    <option value="Cebu City">◎ Cebu City</option>
-                    <option value="Ormoc City">◎ Ormoc City</option>
-                    <option value="Ubay">◎ Ubay</option>
-                    <option value="Bato">◎ Bato</option>
-                </select>
-            </div>
-            <div class="search-field">
-                <label>Departure</label>
-                <input type="date" id="date">
-            </div>
-            <button class="btn-primary" onclick="searchTrips()" style="padding: 1rem 1.5rem;">Search ferries <i class="fa-solid fa-magnifying-glass"></i></button>
+    <form id="book-form" class="sheet-body" novalidate>
+        <div class="group" data-acc-group>
+            <div class="group-title"><b>Accommodation</b><span data-acc-note></span></div>
+            <div class="group-list" data-acc-list role="radiogroup" aria-label="Accommodation"></div>
         </div>
+
+        <div class="group">
+            <div class="group-title"><b>Passengers</b><span data-pax-note></span></div>
+            <div class="group-list">
+                <div data-pax-list></div>
+                <button type="button" class="row row-add" data-add-pax><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Add passenger</button>
+            </div>
+            <p class="group-foot">Student, senior citizen and PWD fares are {{ discount_pct }}% off. Bring a valid ID; the carrier checks it at the port.</p>
+        </div>
+
+        <div class="group" data-veh-group>
+            <div class="group-title"><b>Vehicles</b><span data-veh-note></span></div>
+            <div class="group-list">
+                <div data-veh-list></div>
+                <button type="button" class="row row-add" data-add-veh><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Add vehicle</button>
+            </div>
+            <p class="group-foot">Travelling with your vehicle? Add yourself as a passenger too.</p>
+        </div>
+
+        <div class="group">
+            <div class="group-title"><b>Contact</b></div>
+            <div class="group-list">
+                <label class="row"><i class="lead fa-solid fa-envelope" aria-hidden="true"></i>
+                    <span class="sr-only">Email address</span>
+                    <input type="email" name="email" autocomplete="email" required maxlength="254" placeholder="Email for your tickets">
+                </label>
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="group-title"><b>Payment</b></div>
+            <div class="pay-grid" role="radiogroup" aria-label="Payment method">
+                {% for key, m in payment_methods.items() %}
+                <label class="pay-tile"><input type="radio" name="payment_method" value="{{ key }}"{% if loop.first %} checked{% endif %}>
+                    <i class="fa-solid {{ m.icon }}" aria-hidden="true"></i> {{ m.label }}</label>
+                {% endfor %}
+            </div>
+            <p class="group-foot">Prototype: online payment is simulated. Nothing is charged and no card or e-wallet details are asked for.</p>
+        </div>
+
+        <div class="group">
+            <div class="group-title"><b>Summary</b></div>
+            <div class="group-list summary" data-summary></div>
+        </div>
+
+        <p class="form-error" data-form-error role="alert" hidden></p>
+    </form>
+
+    <div class="sheet-foot">
+        <div class="sheet-total"><span data-total-label>Total</span><strong data-total>₱0</strong></div>
+        <button type="submit" form="book-form" class="btn btn-primary btn-lg btn-block" data-submit>Confirm booking</button>
     </div>
+</dialog>
+{% endblock %}
 
-    <section class="schedules" id="results-section" style="display: none;">
-        <div class="schedule-container" id="results-container"></div>
-    </section>
-
-    <div id="billing-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.25rem;"><i class="fa-solid fa-credit-card" style="color: var(--primary);"></i> Secure Checkout</h3>
-                <button onclick="document.getElementById('billing-modal').style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.25rem; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-muted);">
-                    <span id="summary-base-label">Base Fare (1 ticket)</span>
-                    <span id="summary-base-fare">₱0</span>
-                </div>
-                <div id="summary-discount-row" style="display: none; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; color: #10b981; font-weight: 600;">
-                    <span>Student Discount (20%) <i class="fa-solid fa-circle-check"></i></span>
-                    <span id="summary-discount">-₱0</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.8rem; color: var(--text-muted);">
-                    <span id="summary-service-fee-label">Platform Service Fee (per ticket)</span>
-                    <span id="summary-service-fee">₱20</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 0.8rem; font-weight: 700; font-size: 1.1rem; color: var(--text-dark);">
-                    <span>Total Payment</span>
-                    <span id="summary-total-fare" style="color: var(--primary);">₱0</span>
-                </div>
-            </div>
-
-            <form onsubmit="processPayment(event)">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="flex: 1;">
-                        <label for="regular-quantity" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Regular tickets</label>
-                        <input type="number" id="regular-quantity" min="0" step="1" value="1" required oninput="updateQuantity()" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                    <div style="flex: 1;">
-                        <label for="student-quantity" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Student tickets (max. 1)</label>
-                        <input type="number" id="student-quantity" min="0" max="1" step="1" value="0" required oninput="updateQuantity()" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                </div>
-                <p id="availability-details" style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 1rem;"></p>
-                <p id="availability-error" role="alert" style="display: none; font-size: 0.8rem; color: #b91c1c; margin: -0.5rem 0 1rem;"></p>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Full Name</label>
-                        <input type="text" required placeholder="Juan Dela Cruz" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                    <div style="flex: 1;">
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Email Address</label>
-                        <input type="email" id="input-email" required placeholder="juan@vsu.edu.ph" oninput="checkStudentDiscount()" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px; transition: 0.3s;">
-                        <p id="student-ticket-note" style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Use a .edu.ph email to apply the discount to the student ticket.</p>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Payment Method</label>
-                    <div style="display: flex; gap: 1rem; margin-top: 6px;">
-                        <label style="flex: 1; border: 1px solid var(--primary); background: #f0f4f8; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500;" id="label-ewallet">
-                            <input type="radio" name="pay_mode" value="ewallet" checked onchange="togglePaymentMode()" style="accent-color: var(--primary);"> E-Wallet (GCash/Maya)
-                        </label>
-                        <label style="flex: 1; border: 1px solid var(--border); background: white; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500;" id="label-card">
-                            <input type="radio" name="pay_mode" value="card" onchange="togglePaymentMode()" style="accent-color: var(--primary);"> Credit/Debit Card
-                        </label>
-                    </div>
-                </div>
-
-                <div id="fields-ewallet" style="margin-bottom: 1.5rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mobile Number linked to E-Wallet</label>
-                    <input type="tel" id="input-ewallet" required placeholder="09XX XXX XXXX" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                </div>
-
-                <div id="fields-card" style="display: none; margin-bottom: 1.5rem;">
-                    <div style="margin-bottom: 1rem;">
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Card Number</label>
-                        <input type="text" id="input-cardnum" placeholder="XXXX-XXXX-XXXX-XXXX" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Expiry Date</label>
-                            <input type="text" id="input-cardexp" placeholder="MM/YY" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">CVV</label>
-                            <input type="password" id="input-cardcvv" placeholder="•••" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 4px;">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1rem; display: flex; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-lock"></i> Pay Securely
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <footer class="footer">
-        <div class="footer-grid">
-            <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; display:flex; align-items:center; gap:12px;">
-                    <img src="{{ url_for('static', filename='logo.png') }}" alt="bugsay" style="height: 32px; width: auto; object-fit: contain;"> 
-                    <span>bugsay</span>
-                </h3>
-                <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 2rem;">Bringing the Visayas a little closer.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Plan your trip</h4>
-                <ul><li><a href="/schedules">Ferry schedules</a></li><li><a href="/map">Port map</a></li><li><a href="/updates">Travel updates</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Discover</h4>
-                <ul><li><a href="/tourism">Explore the Visayas</a></li><li><a href="/vehicle">Vehicle Booking</a></li></ul>
-            </div>
-            <div class="footer-col">
-                <h4>Here to help</h4>
-                <ul><li><a href="/faq">Help & FAQ</a></li><li><a href="/privacy">Privacy policy</a></li></ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>© 2026 Bugsay. All rights reserved.</span>
-            <a href="/schedules">See you on the water. ↗</a>
-        </div>
-    </footer>
-
-    <script>
-        document.getElementById('date').valueAsDate = new Date();
-        
-        let currentUnitFare = 0;
-        let currentQuantity = 1;
-        let currentStudentQuantity = 0;
-        let currentSailing = null;
-        const platformServiceFee = 20;
-
-        function updatePrice(selectElem) {
-            const price = selectElem.value;
-            const displayElem = selectElem.nextElementSibling;
-            displayElem.innerText = '₱' + price;
-        }
-
-        function togglePaymentMode() {
-            const mode = document.querySelector('input[name="pay_mode"]:checked').value;
-            const labelEwallet = document.getElementById('label-ewallet');
-            const labelCard = document.getElementById('label-card');
-
-            if(mode === 'ewallet') {
-                document.getElementById('fields-ewallet').style.display = 'block';
-                document.getElementById('fields-card').style.display = 'none';
-                labelEwallet.style.background = '#f0f4f8';
-                labelEwallet.style.borderColor = 'var(--primary)';
-                labelCard.style.background = 'white';
-                labelCard.style.borderColor = 'var(--border)';
-                document.getElementById('input-ewallet').required = true;
-                document.getElementById('input-cardnum').required = false;
-                document.getElementById('input-cardexp').required = false;
-                document.getElementById('input-cardcvv').required = false;
-            } else {
-                document.getElementById('fields-ewallet').style.display = 'none';
-                document.getElementById('fields-card').style.display = 'block';
-                labelCard.style.background = '#f0f4f8';
-                labelCard.style.borderColor = 'var(--primary)';
-                labelEwallet.style.background = 'white';
-                labelEwallet.style.borderColor = 'var(--border)';
-                document.getElementById('input-ewallet').required = false;
-                document.getElementById('input-cardnum').required = true;
-                document.getElementById('input-cardexp').required = true;
-                document.getElementById('input-cardcvv').required = true;
-            }
-        }
-
-        function renderOrderSummary(discountAmount) {
-            const currentBaseFare = currentUnitFare * currentQuantity;
-            const serviceFee = platformServiceFee * currentQuantity;
-            const totalFare = currentBaseFare - discountAmount + serviceFee;
-            document.getElementById('summary-base-label').innerText =
-                `Base Fare (${currentQuantity} ${currentQuantity === 1 ? 'ticket' : 'tickets'})`;
-            document.getElementById('summary-base-fare').innerText = '₱' + currentBaseFare;
-            document.getElementById('summary-service-fee-label').innerText =
-                `Platform Service Fee (${currentQuantity} ${currentQuantity === 1 ? 'ticket' : 'tickets'})`;
-            document.getElementById('summary-service-fee').innerText = '₱' + serviceFee;
-            document.getElementById('summary-discount').innerText = '-₱' + discountAmount;
-            document.getElementById('summary-total-fare').innerText = '₱' + totalFare;
-        }
-
-        function updateQuantity() {
-            const studentQuantityInput = document.getElementById('student-quantity');
-            const regularQuantity = Number(document.getElementById('regular-quantity').value);
-            const studentQuantity = Number(studentQuantityInput.value);
-            studentQuantityInput.setCustomValidity(
-                studentQuantity > 1 ? 'Only one student ticket is allowed per transaction.' : ''
-            );
-            if (!Number.isInteger(regularQuantity) || regularQuantity < 0 ||
-                !Number.isInteger(studentQuantity) || studentQuantity < 0 || studentQuantity > 1) return;
-
-            currentQuantity = regularQuantity + studentQuantity;
-            currentStudentQuantity = studentQuantity;
-            checkStudentDiscount();
-
-            const exceedsAvailability = currentSailing && currentQuantity > currentSailing.available;
-            const availabilityError = document.getElementById('availability-error');
-            availabilityError.style.display = exceedsAvailability ? 'block' : 'none';
-            availabilityError.innerText = exceedsAvailability
-                ? `Only ${currentSailing.available} ticket(s) are available for this accommodation.`
-                : '';
-            document.querySelector('#billing-modal button[type="submit"]').disabled = Boolean(exceedsAvailability);
-        }
-
-        function checkStudentDiscount() {
-            const emailInput = document.getElementById('input-email');
-            const email = emailInput.value.trim().toLowerCase();
-            const discountRow = document.getElementById('summary-discount-row');
-            const studentTicketNote = document.getElementById('student-ticket-note');
-            const hasStudentEmail = email.endsWith('.edu.ph');
-            studentTicketNote.style.display =
-                currentStudentQuantity > 0 && !hasStudentEmail ? 'block' : 'none';
-            
-            if (currentStudentQuantity > 0 && hasStudentEmail) {
-                const discountAmount = Math.round(currentUnitFare * currentStudentQuantity * 0.20);
-                discountRow.style.display = 'flex';
-                emailInput.style.borderColor = '#10b981';
-                emailInput.style.backgroundColor = '#ecfdf5';
-                renderOrderSummary(discountAmount);
-            } else {
-                discountRow.style.display = 'none';
-                emailInput.style.borderColor = 'var(--border)';
-                emailInput.style.backgroundColor = 'white';
-                renderOrderSummary(0);
-            }
-        }
-
-        function openBillingModal(buttonElement) {
-            const card = buttonElement.closest('.schedule-card');
-            const selectElem = card.querySelector('.acc-select');
-            const selectedOption = selectElem.options[selectElem.selectedIndex];
-            if (buttonElement.disabled || selectedOption.disabled) return;
-            
-            currentUnitFare = Number(selectElem.value);
-            currentSailing = {
-                date: buttonElement.dataset.date,
-                company: buttonElement.dataset.company,
-                route: buttonElement.dataset.route,
-                departure: buttonElement.dataset.departure,
-                accommodation: selectedOption.dataset.accommodation,
-                available: Number(selectedOption.dataset.available)
-            };
-            currentQuantity = 1;
-            currentStudentQuantity = 0;
-            document.getElementById('regular-quantity').value = '1';
-            document.getElementById('student-quantity').value = '0';
-            document.getElementById('regular-quantity').max = currentSailing.available;
-            document.getElementById('student-quantity').max = Math.min(1, currentSailing.available);
-            document.getElementById('availability-details').innerText =
-                `${currentSailing.available} ticket(s) available for this accommodation.`;
-            document.getElementById('availability-error').style.display = 'none';
-            document.querySelector('#billing-modal button[type="submit"]').disabled = false;
-            
-            document.getElementById('input-email').value = '';
-            document.getElementById('input-email').style.borderColor = 'var(--border)';
-            document.getElementById('input-email').style.backgroundColor = 'white';
-            document.getElementById('summary-discount-row').style.display = 'none';
-            checkStudentDiscount();
-
-            document.getElementById('billing-modal').style.display = 'flex';
-        }
-
-        async function searchTrips() {
-            const origin = document.getElementById('origin').value;
-            const destination = document.getElementById('destination').value;
-            const sailingDate = document.getElementById('date').value;
-            
-            const response = await fetch('/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origin, destination, date: sailingDate })
-            });
-            if (!response.ok) {
-                throw new Error(`Trip search failed (${response.status})`);
-            }
-            const trips = await response.json();
-            const container = document.getElementById('results-container');
-            document.getElementById('results-section').style.display = 'block';
-            container.innerHTML = '';
-            
-            if (trips.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 2rem;">No trips scheduled for this route today.</p>';
-            } else {
-                trips.forEach(trip => {
-                    const sailingBookable = trip.status === 'scheduled';
-                    const selectedAccIndex = trip.accommodations.findIndex(acc =>
-                        sailingBookable && Number.isInteger(acc.available) && acc.available > 0
-                    );
-                    const accOptions = trip.accommodations.map((acc, index) => {
-                        const hasAvailability = Number.isInteger(acc.available) && acc.available >= 0;
-                        const canBook = sailingBookable && hasAvailability && acc.available > 0;
-                        const availabilityLabel = !hasAvailability
-                            ? 'Availability not set'
-                            : acc.available === 0
-                                ? 'Sold out'
-                                : `${acc.available} available${trip.demo_availability ? ' (demo)' : ''}`;
-                        const selected = index === selectedAccIndex ? 'selected' : '';
-                        return `<option value="${acc.price}" data-accommodation="${acc.type}" data-available="${hasAvailability ? acc.available : ''}" ${canBook ? '' : 'disabled'} ${selected}>${acc.type} — ${availabilityLabel}</option>`;
-                    }).join('');
-                    const hasBookableAccommodation = selectedAccIndex >= 0;
-                    const sailingStatus = trip.status.charAt(0).toUpperCase() + trip.status.slice(1);
-                    
-                    container.innerHTML += `
-                        <div class="schedule-card">
-                            <div class="carrier-info">
-                                <i class="fa-solid fa-ship" style="font-size: 1.5rem; color: var(--primary); background: #e0e7ff; padding: 10px; border-radius: 8px;"></i>
-                                <div><h5>${trip.company}</h5><p>${trip.schedule_info}</p><p style="font-weight: 600; color: ${sailingBookable ? '#059669' : '#b91c1c'};">${sailingStatus}</p></div>
-                            </div>
-                            <div class="trip-timeline">
-                                <div class="time"><h4>${trip.departure}</h4><p>Departure</p></div>
-                                <div class="duration"><br><i class="fa-solid fa-ship"></i><br>Direct</div>
-                                <div class="time"><h4>${trip.arrival}</h4><p>Arrival</p></div>
-                            </div>
-                            <div class="trip-price" style="text-align: right; min-width: 140px;">
-                                <select class="acc-select" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 0.8rem; margin-bottom: 5px; width: 100%; outline: none; cursor: pointer;" onchange="updatePrice(this)" ${hasBookableAccommodation ? '' : 'disabled'}>
-                                    ${accOptions}
-                                </select>
-                                <h4 class="display-price" style="font-size: 1.25rem; font-weight: 500; margin-top: 4px;">₱${hasBookableAccommodation ? trip.accommodations[selectedAccIndex].price : '—'}</h4>
-                            </div>
-                            <div style="text-align: right;">
-                                <button class="btn-primary" onclick="openBillingModal(this)" data-date="${trip.date}" data-company="${trip.company}" data-route="${trip.route}" data-departure="${trip.departure}" ${hasBookableAccommodation ? '' : 'disabled'}>Book Now</button>
-                            </div>
-                        </div>`;
-                });
-            }
-        }
-
-        async function processPayment(event) {
-            event.preventDefault();
-            const regularQuantityInput = document.getElementById('regular-quantity');
-            const studentQuantityInput = document.getElementById('student-quantity');
-            const regularQuantity = Number(regularQuantityInput.value);
-            const studentQuantity = Number(studentQuantityInput.value);
-            if (!Number.isInteger(regularQuantity) || regularQuantity < 0) {
-                regularQuantityInput.reportValidity();
-                return;
-            }
-            if (!Number.isInteger(studentQuantity) || studentQuantity < 0 || studentQuantity > 1) {
-                studentQuantityInput.setCustomValidity(
-                    studentQuantity > 1 ? 'Only one student ticket is allowed per transaction.' : ''
-                );
-                studentQuantityInput.reportValidity();
-                return;
-            }
-            studentQuantityInput.setCustomValidity('');
-            if (regularQuantity + studentQuantity < 1) {
-                alert('Please select at least one ticket.');
-                return;
-            }
-            currentQuantity = regularQuantity + studentQuantity;
-            currentStudentQuantity = studentQuantity;
-            const quantity = currentQuantity;
-            if (!currentSailing || quantity > currentSailing.available) {
-                alert('The selected accommodation does not have enough availability.');
-                return;
-            }
-            checkStudentDiscount();
-
-            const btn = event.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            btn.disabled = true;
-
-            try {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                const response = await fetch('/book', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        booking_type: 'ferry',
-                        date: currentSailing.date,
-                        company: currentSailing.company,
-                        route: currentSailing.route,
-                        departure: currentSailing.departure,
-                        accommodation: currentSailing.accommodation,
-                        quantity,
-                        student_quantity: studentQuantity
-                    })
-                });
-                const booking = await response.json();
-                if (!response.ok) throw new Error(booking.message || `Booking failed (${response.status})`);
-                if (booking.status !== 'success') throw new Error('Booking was not confirmed');
-
-                document.getElementById('billing-modal').style.display = 'none';
-                alert(`Booking Confirmed! ${booking.quantity} ${booking.quantity === 1 ? 'ticket' : 'tickets'} booked (${regularQuantity} regular, ${studentQuantity} student). Your e-ticket has been sent to your email.`);
-                currentSailing = null;
-                event.target.reset();
-                currentQuantity = 1;
-                currentStudentQuantity = 0;
-                checkStudentDiscount();
-
-                document.querySelector('input[value="ewallet"]').checked = true;
-                togglePaymentMode();
-
-                document.getElementById('input-email').style.borderColor = 'var(--border)';
-                document.getElementById('input-email').style.backgroundColor = 'white';
-                document.getElementById('summary-discount-row').style.display = 'none';
-                searchTrips().catch(error => {
-                    console.error('Unable to refresh accommodation availability:', error);
-                    document.getElementById('results-container').innerHTML =
-                        '<p style="text-align:center; color: #b91c1c; padding: 2rem;">Booking succeeded, but availability could not be refreshed. Search again to check the latest seats.</p>';
-                });
-            } catch (error) {
-                console.error('Unable to complete ticket booking:', error);
-                alert(error.message || 'Could not complete the booking. Please try again.');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script>
+window.BUGSAY = {{ {
+    'mode': mode,
+    'discountRate': discount_pct / 100,
+    'feeTicket': fee_ticket,
+    'feeVehicle': fee_vehicle,
+    'maxPassengers': max_passengers,
+    'maxVehicles': max_vehicles,
+    'passengerTypes': passenger_types,
+    'vehicleIcons': vehicle_icons,
+} | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/sheet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/schedules.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% set pill = {'suspended': 'cancelled', 'changed': 'delayed', 'normal': 'scheduled'} %}
+<article class="advisory">
+    <header>
+        <span class="pill pill--{{ pill[a.level] }}">{{ a.label }}</span>
+        <time datetime="{{ a.date.isoformat() }}">{{ a.date.strftime('%b %d, %Y') }}</time>
+    </header>
+    <h3>{{ a.title }}</h3>
+    <p>{{ a.body }}</p>
+</article>

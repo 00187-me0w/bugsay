@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Seat Availability{% endblock %}
+
+{% block content %}
+<div class="wrap page-head">
+    <p class="eyebrow">Availability dashboard</p>
+    <h1 class="title-1">What's still open.</h1>
+    <p class="subhead">Seats left in every accommodation class and deck slots for vehicles, for every sailing on the day. Updates as people book.</p>
+</div>
+
+<section class="wrap section">
+    <div class="dash-bar">
+        <form class="dash-controls" id="dash-form">
+            <div class="field">
+                <label for="d-date">Date</label>
+                <input type="date" id="d-date" name="date" value="{{ query.get('date', today.isoformat()) }}" min="{{ today.isoformat() }}">
+            </div>
+            <div class="field">
+                <label for="d-origin">From</label>
+                <select id="d-origin" name="origin">
+                    <option value="">All ports</option>
+                    {% for key in routes %}<option value="{{ key }}"{% if query.get('origin') == key %} selected{% endif %}>{{ ports[key].name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="d-destination">To</label>
+                <select id="d-destination" name="destination">
+                    <option value="">All ports</option>
+                    {% for key, p in ports.items() %}<option value="{{ key }}"{% if query.get('destination') == key %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+        </form>
+        <span class="live" data-updated aria-live="polite">Live</span>
+    </div>
+
+    <div class="stats" data-stats>
+        <div class="stat"><span>Sailings</span><strong data-stat="sailings">–</strong></div>
+        <div class="stat"><span>Seats left</span><strong data-stat="seats">–</strong></div>
+        <div class="stat"><span>Fill rate</span><strong data-stat="fill">–</strong></div>
+        <div class="stat"><span>Cancelled</span><strong data-stat="cancelled">–</strong></div>
+    </div>
+
+    <div class="dash-grid" data-grid aria-live="polite">
+        <div class="skeleton" style="height:260px"></div><div class="skeleton" style="height:260px"></div><div class="skeleton" style="height:260px"></div>
+    </div>
+    <p class="hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Demo inventory: each class starts at {{ demo_seats }} seats and each vehicle type at {{ demo_slots }} slots per sailing per day, until carriers provide real capacities.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>window.BUGSAY = {{ {'vehicleIcons': vehicle_icons} | tojson }};</script>
+<script src="{{ url_for('static', filename='js/availability.js') }}"></script>
+{% endblock %}

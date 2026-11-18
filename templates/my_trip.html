@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}My Trip{% endblock %}
+
+{% block content %}
+<div class="wrap wrap--narrow page-head section">
+    <p class="eyebrow">My trip</p>
+    <h1 class="title-1">Find your booking</h1>
+    <p class="subhead">Enter the reference you got when you booked. All tickets in the booking are under it.</p>
+
+    {% if not_found %}
+    <p class="form-error">We couldn't find a booking with reference <strong>{{ not_found }}</strong>. Check the code and try again.</p>
+    {% endif %}
+
+    <form class="lookup" action="{{ url_for('booking_lookup') }}" method="get">
+        <div class="field">
+            <label for="ref">Booking reference</label>
+            <input type="text" id="ref" name="ref" placeholder="BG-XXXXXX" required maxlength="12" autocapitalize="characters" autocomplete="off" value="{{ not_found or '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Find booking</button>
+    </form>
+</div>
+{% endblock %}
